@@ -151,7 +151,7 @@ def get_diffusion_bridge_model(measurement_noise_variance=0.001695, train=True):
             x13 = self.conv13(torch.cat([x12, x2], dim=1))
             x14 = self.conv14(x13)
             x15 = self.conv15(x14)
-            return x15
+            return image_embedding - x15
         
     final_estimator = Unet_FinalEstimator().to(device)
 
