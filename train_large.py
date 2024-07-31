@@ -29,6 +29,7 @@ training_loss = diffusion_bridge_model.train_diffusion_backbone(batch_size=32,
 
 plt.figure()
 plt.plot(np.arange(len(training_loss)), training_loss)
+plt.yscale('log')
 plt.xlabel('Epoch')
 plt.ylabel('Average Training Loss')
 plt.title('Training Loss')
