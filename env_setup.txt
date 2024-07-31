@@ -1,0 +1,9 @@
+conda create --name laboratory
+conda activate laboratory
+conda install nvidia/label/cuda-12.4.1::cuda-toolkit
+conda install python=3.11 pip ffmpeg
+pip install pyyaml matplotlib scipy numpy==1.26
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+pip install diffusers["torch"] transformers
+git clone https://www.github.com/tivnanmatt/laboratory.git
+pip install -e laboratory

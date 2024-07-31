@@ -1,6 +1,6 @@
 import os
 import torch
-import laboratory_tcga as lab
+import laboratory as lab
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -10,7 +10,7 @@ def get_diffusion_bridge_model(measurement_noise_variance=0.001695, train=True):
     # Dataset
     # change path
     image_dataset = lab.torch.datasets.TCGA(
-                            root='training_large',
+                            root='TCGA_LIHC/training/',
                             train=True).to(device)
     
     # Measurement Noise Simulator
