@@ -1,9 +1,10 @@
 import torch
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 from common_large import get_diffusion_bridge_model, load_weights
 import laboratory_tcga as lab
 from map_fn_new import *
-# from filter_functions import *
+from filter_fn import *
 
 plot_min = -160
 plot_max = 240
@@ -50,46 +51,108 @@ def setup_sampling(nums):
 
 def check_measurement_var(nums, image_sets):
     true_images, measurements, reconstructions = image_sets
-    # num_pixel, num_images, num_measurements, num_reconstructions = nums
-    # mean_measu = calculate_mean(num_images, num_measurements, num_pixel, measurements)
-    # variance_measurement = calculate_variance(num_images, num_pixel, mean_measu, num_measurements, measurements)
-    # display_variance_measurement(variance_measurement, plot_min, plot_max, freq=False, bandpass=False, lowpass=False, u=0)
-    # print("variance_measurement:", variance_measurement)
     measurements_var = torch.var(measurements, axis=1, keepdim=True)
-    # print("measurements variation:", measurements_var)
     print("average measurements variation:", torch.mean(measurements_var))
 
-    # return variance_measurement
     return measurements_var
 
-def display_image_sets(image_sets):
+def display_image_sets(folder, image_sets):
     true_images, measurements, reconstructions = image_sets
-    display_true(true_images, 0)
-    display_true(measurements, 1)
-    display_true(reconstructions, 2)
+
+    # reverse the normalization to HU
+    mean, std = get_mean_std()
+    true_images = true_images * std  + mean
+    measurements = measurements * std + mean
+    reconstructions = reconstructions * std + mean
+
+    display_map(true_images, "True images", folder + "true.png", plot_min, plot_max)
+    display_map(measurements, "Measurements", folder + "measurements.png", plot_min, plot_max)
+    display_map(reconstructions, "Reconstructions", folder + "reconstructions.png", plot_min, plot_max)
 
     return 0
 
 
-def error_maps(nums, image_sets):
-    # unpack parameters
-    num_pixel, num_images, num_measurements, num_reconstructions = nums
-    true_images, measurements, reconstructions = image_sets
-    mean_recon = calculate_mean(num_images, num_reconstructions, num_pixel, reconstructions)
+def error_maps(folder, nums, image_sets):
+    # mean over reconstructions
+    mean = calculate_mean(nums, image_sets)
 
     # MSE
-    mse = calculate_mse(num_images, num_reconstructions, num_pixel, true_images, reconstructions)
-    display_mse(mse, plot_min, plot_max, freq=False)
+    mse = calculate_mse(nums, image_sets, freq=False)
+    display_map(mse, "MSE maps", folder + "mse.png", plot_min, plot_max)
 
     # Bias-squared
-    bias = calculate_bias(num_images, num_pixel, mean_recon, true_images)
-    display_bias(bias, plot_min, plot_max, freq=False)
+    bias = calculate_bias(mean, nums, image_sets, freq=False)
+    display_map(bias, "Bias-squared maps", folder + "bias.png", plot_min, plot_max)
 
     # Variance
-    variance = calculate_variance(num_images, num_pixel, mean_recon, num_reconstructions, reconstructions)
-    display_variance(variance, plot_min, plot_max, freq=False, bandpass=False, lowpass=False, u=0)
+    variance = calculate_variance(mean, nums, image_sets, freq=False)
+    display_map(variance, "Variance maps", folder + "variance.png", plot_min, plot_max)
+
+    # filtered
+    recon_filtered_all = filter_recon(image_sets)
+    bandpass(folder, nums, image_sets, recon_filtered_all)
+    lowpass(folder, nums, image_sets, recon_filtered_all)
 
     return 0
+
+
+def error_freq(folder, nums, image_sets):
+    # unpack parameters
+    true_images, measurements, reconstructions = image_sets
+
+    # take 2D FFT for the frequency domain
+    true_freq = torch.fft.fft2(true_images)
+    recon_freq = torch.fft.fft2(reconstructions)
+    image_sets = true_freq, measurements, recon_freq
+
+    mean = calculate_mean(nums, image_sets)
+
+    # MSE
+    mse = calculate_mse(nums, image_sets, freq=False)
+    display_map(mse, "MSE maps (frequency)", folder + "mse_freq.png", plot_min, plot_max)
+
+    # Bias-squared
+    bias = calculate_bias(mean, nums, image_sets, freq=False)
+    display_map(bias, "Bias-squared maps (frequency)", folder + "bias_freq.png", plot_min, plot_max)
+
+    # Variance
+    variance = calculate_variance(mean, nums, image_sets, freq=False)
+    display_map(variance, "Variance maps (frequency)", folder + "variance_freq.png", plot_min, plot_max)
+
+    return 0
+
+
+def create_animation(folder, file, nums, image_sets):
+    true_images, measurements, reconstructions = image_sets
+    num_pixel, num_images, num_measurements, num_reconstructions = nums
+
+    fig, axs = plt.subplots(1, 3, figsize=(15, 5))
+    im0 = axs[0].imshow(true_images[0, 0, 0, 0], cmap='gray', vmin=-1.2, vmax=1.2)
+    axs[0].set_title('True Images')
+    im1 = axs[1].imshow(measurements[0, 0, 0, 0], cmap='gray', vmin=-1.2, vmax=1.2)
+    axs[1].set_title('Measurements')
+    im2 = axs[2].imshow(reconstructions[0, 0, 0, 0], cmap='gray', vmin=-1.2, vmax=1.2)
+    axs[2].set_title('Reconstructions')
+
+    def animate(i):
+        print('Animating frame {}/{}'.format(i+1, num_images*num_measurements*num_reconstructions))
+        i, j, k = i // (num_measurements*num_reconstructions), (i // num_reconstructions) % num_measurements, i % num_reconstructions
+        im0.set_array(true_images[i, 0, 0, 0])
+        im1.set_array(measurements[i, j, 0, 0])
+        im2.set_array(reconstructions[i, j, k, 0])
+        return im0, im1, im2
+        
+
+    ani = animation.FuncAnimation(fig, animate, frames=num_images*num_measurements*num_reconstructions, interval=1000, repeat=False)
+
+    # mp4 writer ffmpeg
+    writer = animation.writers['ffmpeg'](fps=10)
+    ani.save(folder + file, writer=writer)
+
+    plt.show()
+
+    return 0
+
 
 
 
