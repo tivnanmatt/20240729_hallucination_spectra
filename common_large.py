@@ -9,9 +9,18 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 def get_diffusion_bridge_model(measurement_noise_variance=0.001695, train=True):
     # Dataset
     # change path
+
+
+
+
+    if train:
+        root = 'TCGA_LIHC/training/' # 64 x 64 patch
+    else:
+        root = 'TCGA_LIHC/testing/' # 512 x512
+
     image_dataset = lab.torch.datasets.TCGA(
-                            root='TCGA_LIHC/training/',
-                            train=True).to(device)
+                            root=root,
+                            train=train).to(device)
     
     # Measurement Noise Simulator
     measurement_simulator = lab.torch.distributions.gaussian.AdditiveWhiteGaussianNoise(
@@ -34,15 +43,15 @@ def get_diffusion_bridge_model(measurement_noise_variance=0.001695, train=True):
                         noise_variance=noise_variance_fn, 
                         noise_variance_prime=noise_variance_prime_fn)
 
-    # Image Encoder
-    image_encoder = lab.torch.linalg.IdentityLinearOperator().to(device)
+    # # Image Encoder
+    # image_encoder = lab.torch.linalg.IdentityLinearOperator().to(device)
 
-    # Time Encoder
-    # change output_shape from (1, 28, 28) to (1, 64, 64)
-    time_encoder = lab.torch.networks.DenseNet(input_shape=(1,), 
-                                               output_shape=(1, 64, 64), 
-                                               hidden_channels_list=[782, 782], 
-                                               activation='relu').to(device)
+    # # Time Encoder
+    # # change output_shape from (1, 28, 28) to (1, 64, 64)
+    # time_encoder = lab.torch.networks.DenseNet(input_shape=(1,), 
+    #                                            output_shape=(1, 64, 64), 
+    #                                            hidden_channels_list=[782, 782], 
+    #                                            activation='relu').to(device)
 
     # # Final Estimator
     # class FinalEstimator(torch.nn.Module):
@@ -114,7 +123,8 @@ def get_diffusion_bridge_model(measurement_noise_variance=0.001695, train=True):
                     return self.activation(self.bn(self.conv(x)))
 
             base_channels=16
-            self.conv1 = ConvBlock(2, base_channels) # -> base_channels, 28, 28
+            time_encoder_output_channels  = 31
+            self.conv1 = ConvBlock(time_encoder_output_channels + 1, base_channels) # -> base_channels, 28, 28
             self.conv2 = ConvBlock(base_channels, base_channels) # -> base_channels, 28, 28
             self.down3 = DownConvBlock(base_channels, base_channels * 2) # -> base_channels * 2, 14, 14
             self.conv4 = ConvBlock(base_channels * 2, base_channels * 2) # -> base_channels * 2, 14, 14
@@ -133,8 +143,25 @@ def get_diffusion_bridge_model(measurement_noise_variance=0.001695, train=True):
             self.conv14 = ConvBlock(base_channels, base_channels) # -> base_channels, 28, 28
             self.conv15 = ConvBlock(base_channels, 1, activation='linear') # -> 1, 28, 28
 
+            self.image_encoder =  lab.torch.linalg.IdentityLinearOperator().to(device)
 
-        def forward(self, image_embedding, time_embedding):
+            self.time_encoder = lab.torch.networks.DenseNet(input_shape=(1,), 
+                                               output_shape=(time_encoder_output_channels,), 
+                                               hidden_channels_list=[1024, 1024, 1024], 
+                                               activation='relu').to(device)
+            
+            self.base_channels = base_channels
+            self.time_encoder_output_channels = time_encoder_output_channels
+
+
+        def forward(self, x_t, t):
+
+            image_embedding = self.image_encoder(x_t)
+            
+            time_embedding = self.time_encoder(t)
+            time_embedding = time_embedding.view(-1, self.time_encoder_output_channels, 1, 1)
+            time_embedding = time_embedding.repeat(1, 1, image_embedding.shape[2], image_embedding.shape[3])
+
             concatenated_data = torch.cat([image_embedding, time_embedding], dim=1)
             x1 = self.conv1(concatenated_data)
             x2 = self.conv2(x1)
@@ -153,13 +180,10 @@ def get_diffusion_bridge_model(measurement_noise_variance=0.001695, train=True):
             x15 = self.conv15(x14)
             return image_embedding - x15
         
-    final_estimator = Unet_FinalEstimator().to(device)
+    diffusion_backbone = Unet_FinalEstimator().to(device)
 
-    # Diffusion Backbone
-    diffusion_backbone = lab.torch.diffusion.UnconditionalDiffusionBackbone(
-                            image_encoder=image_encoder,
-                            time_encoder=time_encoder,
-                            final_estimator=final_estimator).to(device)
+
+    
 
     # Diffusion Model
     diffusion_model = lab.torch.diffusion.UnconditionalDiffusionModel(
