@@ -77,21 +77,24 @@ def error_maps(folder, nums, image_sets):
     mean = calculate_mean(nums, image_sets)
 
     # MSE
-    mse = calculate_mse(nums, image_sets, freq=False)
-    display_map(mse, "MSE maps", folder + "mse.png", plot_min, plot_max)
+    mse = calculate_mse(nums, image_sets, freq=True)
+    display_map(mse, "MSE maps", folder + "mse.png", -5, 4)
+    # print("MSE", mse)
 
     # Bias-squared
-    bias = calculate_bias(mean, nums, image_sets, freq=False)
-    display_map(bias, "Bias-squared maps", folder + "bias.png", plot_min, plot_max)
+    bias = calculate_bias(mean, nums, image_sets, freq=True)
+    display_map(bias, "Bias-squared maps", folder + "bias.png", -2, 3)
+    # print("Bias", bias)
 
     # Variance
-    variance = calculate_variance(mean, nums, image_sets, freq=False)
-    display_map(variance, "Variance maps", folder + "variance.png", plot_min, plot_max)
+    variance = calculate_variance(mean, nums, image_sets, freq=True)
+    display_map(variance, "Variance maps", folder + "variance.png", -2, 3)
+    # print("Variance", variance)
 
     # filtered
-    recon_filtered_all = filter_recon(image_sets)
-    bandpass(folder, nums, image_sets, recon_filtered_all)
-    lowpass(folder, nums, image_sets, recon_filtered_all)
+    # recon_filtered_all = filter_recon(image_sets)
+    # bandpass(folder, nums, image_sets, recon_filtered_all)
+    # lowpass(folder, nums, image_sets, recon_filtered_all)
 
     return 0
 
@@ -108,16 +111,16 @@ def error_freq(folder, nums, image_sets):
     mean = calculate_mean(nums, image_sets)
 
     # MSE
-    mse = calculate_mse(nums, image_sets, freq=False)
-    display_map(mse, "MSE maps (frequency)", folder + "mse_freq.png", plot_min, plot_max)
+    mse = calculate_mse(nums, image_sets, freq=True)
+    display_map(mse, "MSE maps (frequency)", folder + "mse_freq.png", -10, 10)
 
     # Bias-squared
-    bias = calculate_bias(mean, nums, image_sets, freq=False)
-    display_map(bias, "Bias-squared maps (frequency)", folder + "bias_freq.png", plot_min, plot_max)
+    bias = calculate_bias(mean, nums, image_sets, freq=True)
+    display_map(bias, "Bias-squared maps (frequency)", folder + "bias_freq.png",  -10, 10)
 
     # Variance
-    variance = calculate_variance(mean, nums, image_sets, freq=False)
-    display_map(variance, "Variance maps (frequency)", folder + "variance_freq.png", plot_min, plot_max)
+    variance = calculate_variance(mean, nums, image_sets, freq=True)
+    display_map(variance, "Variance maps (frequency)", folder + "variance_freq.png",  -10, 10)
 
     return 0
 
@@ -128,11 +131,11 @@ def create_animation(folder, file, nums, image_sets):
     num_images, num_measurements, num_reconstructions, num_pixels, num_timesteps = nums
 
     fig, axs = plt.subplots(1, 3, figsize=(15, 5))
-    im0 = axs[0].imshow(true_images[0, 0, 0, 0].detach().cpu(), cmap='gray', vmin=-1.2, vmax=1.2)
+    im0 = axs[0].imshow(true_images[0, 0, 0, 0].detach().cpu(), cmap='gray', vmin=-2, vmax=2)
     axs[0].set_title('True Images')
-    im1 = axs[1].imshow(measurements[0, 0, 0, 0].detach().cpu(), cmap='gray', vmin=-1.2, vmax=1.2)
+    im1 = axs[1].imshow(measurements[0, 0, 0, 0].detach().cpu(), cmap='gray', vmin=-2, vmax=2)
     axs[1].set_title('Measurements')
-    im2 = axs[2].imshow(reconstructions[0, 0, 0, 0].detach().cpu(), cmap='gray', vmin=-1.2, vmax=1.2)
+    im2 = axs[2].imshow(reconstructions[0, 0, 0, 0].detach().cpu(), cmap='gray', vmin=-2, vmax=2)
     axs[2].set_title('Reconstructions')
 
     def animate(i):

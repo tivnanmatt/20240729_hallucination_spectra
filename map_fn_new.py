@@ -52,7 +52,8 @@ def calculate_mse(nums, image_sets, freq=False):
         mse[n, :, :, :, :, :] = total_diff / (num_measurements * num_reconstructions)
         # reverse the normalization to HU
         mse[n, :, :, :, :, :] = mse[n, :, :, :, :, :] * (std ** 2)
-    
+    print(torch.max(mse))
+    print(torch.min(mse))
     if freq:
         log_mse = torch.log(mse)
         return log_mse
@@ -69,7 +70,8 @@ def calculate_bias(mean, nums, image_sets, freq=False):
         bias[m, :, :, :, :, :] = (mean[m, :, :, :, :, :] - true_images[m, :, :, :, :, :].detach().cpu()).abs() ** 2
         # reverse normalization
         bias[m, :, :, :, :, :] = bias[m, :, :, :, :, :] * (std ** 2)
-
+    print(torch.max(bias))
+    print(torch.min(bias))
     if freq:
         log_bias = torch.log(bias)
         return log_bias
@@ -83,15 +85,22 @@ def calculate_variance(mean, nums, image_sets, freq=False):
     true_images, measurements, reconstructions = image_sets
     variance = torch.zeros(num_images, 1, 1, 1, num_pixels, num_pixels)
     for n in range(num_images):
-        total_var = torch.zeros(1, 1, 1, 1, num_pixels, num_pixels)
+        # total_var = torch.zeros(1, 1, 1, 1, num_pixels, num_pixels)
         for m in range(num_measurements):
             for r in range(num_reconstructions):
-                total_var += (reconstructions[n, m, r, :, :, :].detach().cpu() - mean[n, :, :, :, :, :]).abs() ** 2
+                # total_var[:, :, :, :, :, :] += (reconstructions[n, m, r, :, :, :].detach().cpu() - mean[n, :, :, :, :, :]).abs() ** 2
+                variance[n, :, :, :, :, :] += (reconstructions[n, m, r, :, :, :].detach().cpu() - mean[n, :, :, :, :, :]).abs() ** 2
         # variance among the reconstructions of this sample image
-        variance[n, :, :, :, :, :] = total_var / (num_measurements * num_reconstructions - 1)
+        # variance[n, :, :, :, :, :] = total_var[:, :, :, :, :, :] / (num_measurements * num_reconstructions - 1)
+        if (num_measurements * num_reconstructions - 1) == 0:
+            divisor = 1
+        else:
+            divisor = (num_measurements * num_reconstructions - 1)
+        variance[n, :, :, :, :, :] = torch.div(variance[n, :, :, :, :, :], divisor) 
         # reverse the normalization 
         variance[n, :, :, :, :, :] = variance[n, :, :, :, :, :] * (std ** 2)
-
+        print(torch.max(variance))
+        print(torch.min(variance))
     if freq:
         log_var = torch.log(variance)
         return log_var

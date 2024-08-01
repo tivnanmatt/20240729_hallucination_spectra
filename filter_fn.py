@@ -42,7 +42,7 @@ def bandpass(folder, nums, image_sets, recon_filtered_all):
 
         # mean of the filtered reconstruction
         mean = calculate_mean(nums, image_sets)
-        variance = calculate_variance(mean, nums, image_sets, freq=False)
+        variance = calculate_variance(mean, nums, image_sets, freq=True)
         title = f"Variance maps (band filtered: sigma={round(0.4*(u-1), 1)}-{round(0.4*u, 1)}"
         file = f"var_{round(0.4*(u-1), 1)}-{round(0.4*u, 1)}.png"
         display_map(variance, title, folder + file, plot_min, plot_max)
@@ -63,7 +63,7 @@ def lowpass(folder, nums, image_sets, recon_filtered_all):
         image_sets = true_images, measurements, recon_filtered
 
         mean = calculate_mean(nums, image_sets)
-        variance = calculate_variance(mean, nums, image_sets, freq=False)
+        variance = calculate_variance(mean, nums, image_sets, freq=True)
         title = f"Variance maps (lowpass filtered: sigma={round(0.4*u, 1)}"
         file = f"var_{round(0.4*u, 1)}.png"
         display_map(variance, title, folder + file, plot_min, plot_max)
