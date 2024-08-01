@@ -16,7 +16,7 @@ def setup_sampling(nums):
     diffusion_bridge_model = get_diffusion_bridge_model(train=False)
 
     # Load pre-trained weights
-    diffusion_backbone_weights_filename = 'weights/diffusion_backbone_weights_0728.pth'
+    diffusion_backbone_weights_filename = 'weights/diffusion_backbone_weights_20HU_0801.pth'
     load_weights(diffusion_bridge_model, diffusion_backbone_weights_filename)
 
     # Set the model to evaluation mode
@@ -70,7 +70,6 @@ def display_image_sets(folder, image_sets):
     display_map(reconstructions, "Reconstructions", folder + "reconstructions.png", plot_min, plot_max)
 
     return 0
-
 
 def error_maps(folder, nums, image_sets):
     # mean over reconstructions
@@ -153,71 +152,3 @@ def create_animation(folder, file, nums, image_sets):
 
     return 0
 
-
-
-
-"""
-# True images
-display_true(true_images)
-# display_true(measurements)
-# display_true(reconstructions)
-
-### frequency domain
-# Convert true_images and reconstructions to their spatial frequency domain
-true_freq = torch.fft.fft2(true_images)
-recon_freq = torch.fft.fft2(reconstructions)
-
-# frequency MSE
-mse_freq = calculate_mse(num_images, num_reconstructions, num_pixel, true_freq, recon_freq)
-log_mse_freq = torch.log(mse_freq)
-display_mse(log_mse_freq, plot_min, plot_max, freq=True)
-
-freq_mean = calculate_mean(num_images, num_reconstructions, num_pixel, recon_freq)
-
-# frequency Bias-squared
-bias_freq = calculate_bias(num_images, num_pixel, freq_mean, true_freq)
-log_bias_freq = torch.log(bias_freq)
-display_bias(log_bias_freq, plot_min, plot_max, freq=True)
-
-# frequency Variance
-var_freq = calculate_variance(num_images, num_pixel, freq_mean, num_reconstructions, recon_freq)
-log_var_freq = torch.log(var_freq)
-display_variance(log_var_freq, plot_min, plot_max, freq=True, bandpass=False, lowpass=False, u=0)
-"""
-
-"""
-### filtered
-recon_filtered_all = apply_filter(reconstructions)
-# bandpass variance
-bandpass_variance(num_images, num_reconstructions, num_pixel, recon_filtered_all)
-# lowpass variance
-lowpass_variance(num_images, num_reconstructions, num_pixel, recon_filtered_all)
-
-# Create animation
-import matplotlib.animation as animation
-
-fig, axs = plt.subplots(1, 3, figsize=(15, 5))
-im0 = axs[0].imshow(true_images[0, 0, 0, 0], cmap='gray', vmin=-1.2, vmax=1.2)
-axs[0].set_title('True Images')
-im1 = axs[1].imshow(measurements[0, 0, 0, 0], cmap='gray', vmin=-1.2, vmax=1.2)
-axs[1].set_title('Measurements')
-im2 = axs[2].imshow(reconstructions[0, 0, 0, 0], cmap='gray', vmin=-1.2, vmax=1.2)
-axs[2].set_title('Reconstructions')
-
-def animate(i):
-    print('Animating frame {}/{}'.format(i+1, num_images*num_measurements*num_reconstructions))
-    i, j, k = i // (num_measurements*num_reconstructions), (i // num_reconstructions) % num_measurements, i % num_reconstructions
-    im0.set_array(true_images[i, 0, 0, 0])
-    im1.set_array(measurements[i, j, 0, 0])
-    im2.set_array(reconstructions[i, j, k, 0])
-    return im0, im1, im2
-    
-
-ani = animation.FuncAnimation(fig, animate, frames=num_images*num_measurements*num_reconstructions, interval=1000, repeat=False)
-
-# mp4 writer ffmpeg
-writer = animation.writers['ffmpeg'](fps=10)
-ani.save('figures/diffusion_bridge_model_large_0722.mp4', writer=writer)
-
-plt.show()
-"""

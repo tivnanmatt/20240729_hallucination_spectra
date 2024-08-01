@@ -53,6 +53,7 @@ def sample_recon(nums, noise_hu):
 
     return image_sets
 
+"""
 fig = plt.figure(figsize=(5, 5))
 vmin = -2
 vmax = 2
@@ -75,3 +76,5 @@ plt.savefig('figures/reconstruction.png')
 
 
 print()
+
+"""
