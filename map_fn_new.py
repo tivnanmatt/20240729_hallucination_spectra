@@ -4,11 +4,11 @@ reconstructions. All maps are displayed in grayscale.
 """
 import torch
 import matplotlib.pyplot as plt
-import laboratory_tcga as lab
+import laboratory as lab
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 loader = lab.torch.datasets.TCGA(
-                            root='training_large',
+                            root='TCGA_LIHC/testing/',
                             train=False).to(device)
 mean = loader.mu
 print("loader mean:", mean)
@@ -21,14 +21,14 @@ def get_mean_std():
 # Find the mean across reconstructions
 def calculate_mean(nums, image_sets):
     # mean = torch.mean(reconstructions, 2, keepdim=True)
-    num_pixel, num_images, num_measurements, num_reconstructions = nums
+    num_images, num_measurements, num_reconstructions, num_pixels, num_timesteps = nums
     true_images, measurements, reconstructions = image_sets
-    mean = torch.zeros(num_images, 1, 1, 1, num_pixel, num_pixel, dtype=torch.complex64)
+    mean = torch.zeros(num_images, 1, 1, 1, num_pixels, num_pixels, dtype=torch.complex64)
     # for every sample image
     for n in range(num_images):
         for m in range(num_measurements):
             for r in range(num_reconstructions):
-                mean[n, :, :, :, :, :] += reconstructions[n, m, r, :, :, :]
+                mean[n, :, :, :, :, :] += reconstructions[n, m, r, :, :, :].detach().cpu()
         # mean of this sample image
         mean[n, :, :, :, :, :] /= (num_measurements * num_reconstructions)
 
@@ -36,16 +36,16 @@ def calculate_mean(nums, image_sets):
 
 # MSE
 def calculate_mse(nums, image_sets, freq=False):
-    num_pixel, num_images, num_measurements, num_reconstructions = nums
+    num_images, num_measurements, num_reconstructions, num_pixels, num_timesteps = nums
     true_images, measurements, reconstructions = image_sets
-    mse = torch.zeros(num_images, 1, 1, 1, num_pixel, num_pixel)
+    mse = torch.zeros(num_images, 1, 1, 1, num_pixels, num_pixels)
     for n in range(num_images):
-        total_diff = torch.zeros(1, 1, 1, 1, num_pixel, num_pixel)
+        total_diff = torch.zeros(1, 1, 1, 1, num_pixels, num_pixels)
         for m in range(num_measurements):
             for r in range(num_reconstructions):
                 # find the difference between each reconstruction and the ground truth
                 # diff_squared, total_diff, mse are all tensors of the same shape as the images
-                diff_squared = (true_images[n, :, :, :, :, :] - reconstructions[n, m, r, :, :, :]).abs() ** 2
+                diff_squared = (true_images[n, :, :, :, :, :].detach().cpu() - reconstructions[n, m, r, :, :, :].detach().cpu()).abs() ** 2
                 total_diff += diff_squared
 
         # MSE for this ground truth image
@@ -62,11 +62,11 @@ def calculate_mse(nums, image_sets, freq=False):
 
 # Bias-squared 
 def calculate_bias(mean, nums, image_sets, freq=False):
-    num_pixel, num_images, num_measurements, num_reconstructions = nums
+    num_images, num_measurements, num_reconstructions, num_pixels, num_timesteps = nums
     true_images, measurements, reconstructions = image_sets
-    bias = torch.zeros(num_images, 1, 1, 1, num_pixel, num_pixel)
+    bias = torch.zeros(num_images, 1, 1, 1, num_pixels, num_pixels)
     for m in range(num_images):
-        bias[m, :, :, :, :, :] = (mean[m, :, :, :, :, :] - true_images[m, :, :, :, :, :]).abs() ** 2
+        bias[m, :, :, :, :, :] = (mean[m, :, :, :, :, :] - true_images[m, :, :, :, :, :].detach().cpu()).abs() ** 2
         # reverse normalization
         bias[m, :, :, :, :, :] = bias[m, :, :, :, :, :] * (std ** 2)
 
@@ -79,14 +79,14 @@ def calculate_bias(mean, nums, image_sets, freq=False):
 
 # Variance
 def calculate_variance(mean, nums, image_sets, freq=False):
-    num_pixel, num_images, num_measurements, num_reconstructions = nums
+    num_images, num_measurements, num_reconstructions, num_pixels, num_timesteps = nums
     true_images, measurements, reconstructions = image_sets
-    variance = torch.zeros(num_images, 1, 1, 1, num_pixel, num_pixel)
+    variance = torch.zeros(num_images, 1, 1, 1, num_pixels, num_pixels)
     for n in range(num_images):
-        total_var = torch.zeros(1, 1, 1, 1, num_pixel, num_pixel)
+        total_var = torch.zeros(1, 1, 1, 1, num_pixels, num_pixels)
         for m in range(num_measurements):
             for r in range(num_reconstructions):
-                total_var += (reconstructions[n, m, r, :, :, :] - mean[n, :, :, :, :, :]).abs() ** 2
+                total_var += (reconstructions[n, m, r, :, :, :].detach().cpu() - mean[n, :, :, :, :, :]).abs() ** 2
         # variance among the reconstructions of this sample image
         variance[n, :, :, :, :, :] = total_var / (num_measurements * num_reconstructions - 1)
         # reverse the normalization 
@@ -103,10 +103,10 @@ def calculate_variance(mean, nums, image_sets, freq=False):
 # error (the quantity to be plotted) has to be normalized already
 def display_map(error, title, filename, plot_min, plot_max):
     num = 0
-    fig, ax = plt.subplots(4, 4, figsize=(15, 5))
-    for col in range(4):
-        for row in range(4):
-            im = ax[col, row].imshow(error[num, 0, 0, 0, :, :], cmap='gray', vmin=plot_min, vmax=plot_max)
+    fig, ax = plt.subplots(2, 2, figsize=(15, 5))
+    for col in range(2):
+        for row in range(2):
+            im = ax[col, row].imshow(error[num, 0, 0, 0, :, :].detach().cpu(), cmap='gray', vmin=plot_min, vmax=plot_max)
             ax[col, row].set_xticks([])
             ax[col, row].set_yticks([])
             num += 1

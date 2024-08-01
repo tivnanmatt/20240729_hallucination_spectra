@@ -1,8 +1,8 @@
 import torch
-import matplotlib.pyplot as plt
-from matplotlib import colors
-from common_large import get_diffusion_bridge_model, load_weights
-import laboratory_tcga as lab
+# import matplotlib.pyplot as plt
+# from matplotlib import colors
+# from common_large import get_diffusion_bridge_model, load_weights
+# import laboratory_tcga as lab
 from scipy.ndimage import gaussian_filter
 from map_fn_new import *
 
@@ -10,6 +10,7 @@ from map_fn_new import *
 # apply frequency filter to reconstructions (non-fft!)
 def filter_recon(image_sets):
     true_images, measurements, reconstructions = image_sets
+    reconstructions = reconstructions.detach().cpu()
     recon_filtered_1 = gaussian_filter(reconstructions, sigma=0.0)
     recon_filtered_2 = gaussian_filter(reconstructions, sigma=0.4)
     recon_filtered_3 = gaussian_filter(reconstructions, sigma=0.8)

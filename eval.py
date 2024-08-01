@@ -12,7 +12,7 @@ num_reconstructions_per_measurement = 1
 num_timesteps = 1024
 
 def sample_recon(nums, noise_hu):
-    num_images, num_measurements_per_image, num_reconstructions_per_measurement, num_timesteps = nums
+    num_images, num_measurements_per_image, num_reconstructions_per_measurement, num_pixels, num_timesteps = nums
 
     # Get the model
     HU = np.sqrt(0.001695)/20

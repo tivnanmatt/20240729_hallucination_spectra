@@ -2,13 +2,13 @@ import torch
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from common_large import get_diffusion_bridge_model, load_weights
-import laboratory_tcga as lab
+# import laboratory_tcga as lab
 from map_fn_new import *
 from filter_fn import *
 
 plot_min = -160
 plot_max = 240
-
+"""
 # nums = num_pixel, num_images, num_measurements, num_reconstructions
 # set up the model in the evaluation mode and generate samples
 def setup_sampling(nums):
@@ -48,7 +48,8 @@ def setup_sampling(nums):
     image_sets = true_images, measurements, reconstructions
 
     return image_sets
-
+"""
+    
 def check_measurement_var(nums, image_sets):
     true_images, measurements, reconstructions = image_sets
     measurements_var = torch.var(measurements, axis=1, keepdim=True)
@@ -123,22 +124,23 @@ def error_freq(folder, nums, image_sets):
 
 def create_animation(folder, file, nums, image_sets):
     true_images, measurements, reconstructions = image_sets
-    num_pixel, num_images, num_measurements, num_reconstructions = nums
+    # num_pixel, num_images, num_measurements, num_reconstructions = nums
+    num_images, num_measurements, num_reconstructions, num_pixels, num_timesteps = nums
 
     fig, axs = plt.subplots(1, 3, figsize=(15, 5))
-    im0 = axs[0].imshow(true_images[0, 0, 0, 0], cmap='gray', vmin=-1.2, vmax=1.2)
+    im0 = axs[0].imshow(true_images[0, 0, 0, 0].detach().cpu(), cmap='gray', vmin=-1.2, vmax=1.2)
     axs[0].set_title('True Images')
-    im1 = axs[1].imshow(measurements[0, 0, 0, 0], cmap='gray', vmin=-1.2, vmax=1.2)
+    im1 = axs[1].imshow(measurements[0, 0, 0, 0].detach().cpu(), cmap='gray', vmin=-1.2, vmax=1.2)
     axs[1].set_title('Measurements')
-    im2 = axs[2].imshow(reconstructions[0, 0, 0, 0], cmap='gray', vmin=-1.2, vmax=1.2)
+    im2 = axs[2].imshow(reconstructions[0, 0, 0, 0].detach().cpu(), cmap='gray', vmin=-1.2, vmax=1.2)
     axs[2].set_title('Reconstructions')
 
     def animate(i):
         print('Animating frame {}/{}'.format(i+1, num_images*num_measurements*num_reconstructions))
         i, j, k = i // (num_measurements*num_reconstructions), (i // num_reconstructions) % num_measurements, i % num_reconstructions
-        im0.set_array(true_images[i, 0, 0, 0])
-        im1.set_array(measurements[i, j, 0, 0])
-        im2.set_array(reconstructions[i, j, k, 0])
+        im0.set_array(true_images[i, 0, 0, 0].detach().cpu())
+        im1.set_array(measurements[i, j, 0, 0].detach().cpu())
+        im2.set_array(reconstructions[i, j, k, 0].detach().cpu())
         return im0, im1, im2
         
 
