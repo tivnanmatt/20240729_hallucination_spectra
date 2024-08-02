@@ -30,9 +30,10 @@ def filter_recon(image_sets):
 
 # BANDPASS
 def bandpass(folder, nums, image_sets, recon_filtered_all):
+    print("band pass")
     for u in range(1, 13):
-        plot_min = -160
-        plot_max = 240
+        plot_min = -10
+        plot_max = 2
 
         true_images, measurements, reconstructions = image_sets
 
@@ -43,8 +44,16 @@ def bandpass(folder, nums, image_sets, recon_filtered_all):
         # mean of the filtered reconstruction
         mean = calculate_mean(nums, image_sets)
         variance = calculate_variance(mean, nums, image_sets, freq=True)
-        title = f"Variance maps (band filtered: sigma={round(0.4*(u-1), 1)}-{round(0.4*u, 1)}"
+        title = f"Variance maps (band filtered: sigma={round(0.4*(u-1), 1)}-{round(0.4*u, 1)})"
         file = f"var_{round(0.4*(u-1), 1)}-{round(0.4*u, 1)}.png"
+
+        # print("max: ", torch.max(variance))
+        # print("min: ", torch.min(variance))
+
+        # print(f"var_{round(0.4*(u-1), 1)}-{round(0.4*u, 1)}")
+        # hist_var, edge_var = torch.histogram(variance[0, 0, 0, :, :, :], bins=100)
+        # print(hist_var, edge_var)
+
         display_map(variance, title, folder + file, plot_min, plot_max)
 
     return 0
@@ -52,9 +61,10 @@ def bandpass(folder, nums, image_sets, recon_filtered_all):
 
 # LOWPASS
 def lowpass(folder, nums, image_sets, recon_filtered_all):
+    print("low pass")
     for u in range(13):
-        plot_min = -160
-        plot_max = 240
+        plot_min = -10
+        plot_max = 2
 
         true_images, measurements, reconstructions = image_sets
 
@@ -64,9 +74,12 @@ def lowpass(folder, nums, image_sets, recon_filtered_all):
 
         mean = calculate_mean(nums, image_sets)
         variance = calculate_variance(mean, nums, image_sets, freq=True)
-        title = f"Variance maps (lowpass filtered: sigma={round(0.4*u, 1)}"
+        title = f"Variance maps (lowpass filtered: sigma={round(0.4*u, 1)})"
         file = f"var_{round(0.4*u, 1)}.png"
         display_map(variance, title, folder + file, plot_min, plot_max)
+
+        # print("max: ", torch.max(variance))
+        # print("min: ", torch.min(variance))
 
     return 0
 

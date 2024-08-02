@@ -50,10 +50,11 @@ def calculate_mse(nums, image_sets, freq=False):
 
         # MSE for this ground truth image
         mse[n, :, :, :, :, :] = total_diff / (num_measurements * num_reconstructions)
+        # RMSE
+        mse[n, :, :, :, :, :] = torch.sqrt(mse[n, :, :, :, :, :])
         # reverse the normalization to HU
-        mse[n, :, :, :, :, :] = mse[n, :, :, :, :, :] * (std ** 2)
-    print(torch.max(mse))
-    print(torch.min(mse))
+        mse[n, :, :, :, :, :] = mse[n, :, :, :, :, :] * std
+    
     if freq:
         log_mse = torch.log(mse)
         return log_mse
@@ -67,11 +68,19 @@ def calculate_bias(mean, nums, image_sets, freq=False):
     true_images, measurements, reconstructions = image_sets
     bias = torch.zeros(num_images, 1, 1, 1, num_pixels, num_pixels)
     for m in range(num_images):
-        bias[m, :, :, :, :, :] = (mean[m, :, :, :, :, :] - true_images[m, :, :, :, :, :].detach().cpu()).abs() ** 2
+        # bias[m, :, :, :, :, :] = (mean[m, :, :, :, :, :] - true_images[m, :, :, :, :, :].detach().cpu()).abs() ** 2
+        bias[m, :, :, :, :, :] = (mean[m, :, :, :, :, :] - true_images[m, :, :, :, :, :].detach().cpu()).abs()
         # reverse normalization
-        bias[m, :, :, :, :, :] = bias[m, :, :, :, :, :] * (std ** 2)
-    print(torch.max(bias))
-    print(torch.min(bias))
+        # bias[m, :, :, :, :, :] = bias[m, :, :, :, :, :] * (std ** 2)
+        bias[m, :, :, :, :, :] = bias[m, :, :, :, :, :] * std
+    # print("bias")
+    # hist, edge = torch.histogram(bias[0, 0, 0, :, :, :], bins=100)
+    # print(hist, edge)
+    # plt.plot(edge[:-1], hist)
+    # plt.title("bias")
+    # plt.show()
+    # plt.savefig("maps_a/bias_hist.png")
+
     if freq:
         log_bias = torch.log(bias)
         return log_bias
@@ -97,10 +106,18 @@ def calculate_variance(mean, nums, image_sets, freq=False):
         else:
             divisor = (num_measurements * num_reconstructions - 1)
         variance[n, :, :, :, :, :] = torch.div(variance[n, :, :, :, :, :], divisor) 
+        # use std
+        variance[n, :, :, :, :, :] = torch.sqrt(variance[n, :, :, :, :, :])
         # reverse the normalization 
-        variance[n, :, :, :, :, :] = variance[n, :, :, :, :, :] * (std ** 2)
-        print(torch.max(variance))
-        print(torch.min(variance))
+        # variance[n, :, :, :, :, :] = variance[n, :, :, :, :, :] * (std ** 2)
+        variance[n, :, :, :, :, :] = variance[n, :, :, :, :, :] * std
+    # print("variance")
+    # hist, edge = torch.histogram(variance[0, 0, 0, :, :, :], bins=100)
+    # print(hist, edge)
+    # plt.plot(edge[:-1], hist)
+    # plt.title("variance")
+    # plt.show()
+    # plt.savefig("maps_a/variance_hist.png")
     if freq:
         log_var = torch.log(variance)
         return log_var
