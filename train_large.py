@@ -10,13 +10,14 @@ measurement_noise_variance = (100*HU)**2.0
 diffusion_bridge_model = get_diffusion_bridge_model(measurement_noise_variance=measurement_noise_variance)
 
 # Load pre-trained weights if available
-weights_filename = 'weights/diffusion_backbone_weights_0728.pth'
+weights_filename = 'weights/diffusion_backbone_weights_20HU_0801.pth'
 
 # If weights are available, load them
 if os.path.exists(weights_filename):
     load_weights(diffusion_bridge_model, weights_filename)
 
 # Train the model
+# 128, 1000, 200, 10
 training_loss = diffusion_bridge_model.train_diffusion_backbone(batch_size=128, 
                                                 num_epochs=1000, 
                                                 num_iterations_per_epoch=200,
@@ -31,3 +32,5 @@ plt.xlabel('Epoch')
 plt.ylabel('Average Training Loss')
 plt.title('Training Loss')
 plt.savefig('figures/training_loss.png')
+
+np.save('figures/training_loss.npy', training_loss)
