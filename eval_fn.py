@@ -75,10 +75,10 @@ def display_image_sets(folder, image_sets):
 def error_maps(folder, nums, image_sets):
     # mean over reconstructions
     mean = calculate_mean(nums, image_sets)
-    """
+    
     # MSE
     mse = calculate_mse(nums, image_sets, freq=False)
-    display_map(mse, "RMSE maps", folder + "rmse.png", 0, 50)
+    display_map(mse, "RMSE maps", folder + "rmse.png", 0, 40)
     # print("MSE", mse)
     # hist_mse, edge_mse = torch.histogram(mse[0, 0, 0, :, :, :], bins=100)
     # print(hist_mse, edge_mse)
@@ -90,7 +90,7 @@ def error_maps(folder, nums, image_sets):
 
     # Bias-squared
     bias = calculate_bias(mean, nums, image_sets, freq=False)
-    display_map(bias, "Bias maps", folder + "bias.png", 0, 50)
+    display_map(bias, "Bias maps", folder + "bias.png", 0, 30)
     # print("Bias", bias)
     # hist_bias, edge_bias = torch.histogram(mse[0, 0, 0, :, :, :], bins=100)
     # print(hist_bias, edge_bias)
@@ -111,7 +111,7 @@ def error_maps(folder, nums, image_sets):
     # plt.xlim(0, 50)
     # plt.show()
     # plt.savefig("maps_a/var_hist.png")
-    """
+    
     # filtered
     recon_filtered_all = filter_recon(image_sets)
     bandpass(folder, nums, image_sets, recon_filtered_all)
