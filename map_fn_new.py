@@ -73,13 +73,6 @@ def calculate_bias(mean, nums, image_sets, freq=False):
         # reverse normalization
         # bias[m, :, :, :, :, :] = bias[m, :, :, :, :, :] * (std ** 2)
         bias[m, :, :, :, :, :] = bias[m, :, :, :, :, :] * std
-    # print("bias")
-    # hist, edge = torch.histogram(bias[0, 0, 0, :, :, :], bins=100)
-    # print(hist, edge)
-    # plt.plot(edge[:-1], hist)
-    # plt.title("bias")
-    # plt.show()
-    # plt.savefig("maps_a/bias_hist.png")
 
     if freq:
         log_bias = torch.log(bias)
@@ -100,7 +93,6 @@ def calculate_variance(mean, nums, image_sets, freq=False):
                 # total_var[:, :, :, :, :, :] += (reconstructions[n, m, r, :, :, :].detach().cpu() - mean[n, :, :, :, :, :]).abs() ** 2
                 variance[n, :, :, :, :, :] += (reconstructions[n, m, r, :, :, :].detach().cpu() - mean[n, :, :, :, :, :]).abs() ** 2
         # variance among the reconstructions of this sample image
-        # variance[n, :, :, :, :, :] = total_var[:, :, :, :, :, :] / (num_measurements * num_reconstructions - 1)
         if (num_measurements * num_reconstructions - 1) == 0:
             divisor = 1
         else:
@@ -111,13 +103,7 @@ def calculate_variance(mean, nums, image_sets, freq=False):
         # reverse the normalization 
         # variance[n, :, :, :, :, :] = variance[n, :, :, :, :, :] * (std ** 2)
         variance[n, :, :, :, :, :] = variance[n, :, :, :, :, :] * std
-    # print("variance")
-    # hist, edge = torch.histogram(variance[0, 0, 0, :, :, :], bins=100)
-    # print(hist, edge)
-    # plt.plot(edge[:-1], hist)
-    # plt.title("variance")
-    # plt.show()
-    # plt.savefig("maps_a/variance_hist.png")
+
     if freq:
         log_var = torch.log(variance)
         return log_var

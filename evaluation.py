@@ -44,6 +44,7 @@ c. reconstruction given measurements
 N=16, M=1, R=16
 
 """
+"""
 folder_c = "maps_c/"
 nums_c = 16, 1, 16, 512, 32
 image_sets_c = sample_recon(nums_c, noise_hu)
@@ -52,3 +53,18 @@ display_image_sets(folder_c, image_sets_c)
 create_animation(folder_c, "animation_c.mp4", nums_c, image_sets_c)
 error_maps(folder_c, nums_c, image_sets_c)
 error_freq(folder_c, nums_c, image_sets_c)
+"""
+
+"""
+d. reconstruction given measurements
+N=16, M=1, R=64
+
+"""
+folder_d = "maps_d/"
+nums_d = 16, 1, 64, 512, 32
+image_sets_d = sample_recon(nums_d, noise_hu)
+meas_var_d = check_measurement_var(nums_d, image_sets_d)
+display_image_sets(folder_d, image_sets_d)
+create_animation(folder_d, "animation_d.mp4", nums_d, image_sets_d)
+error_maps(folder_d, nums_d, image_sets_d)
+error_freq(folder_d, nums_d, image_sets_d)

@@ -10,9 +10,6 @@ def get_diffusion_bridge_model(measurement_noise_variance=0.001695, train=True):
     # Dataset
     # change path
 
-
-
-
     if train:
         root = 'TCGA_LIHC/training/' # 64 x 64 patch
     else:

@@ -33,25 +33,6 @@ def bandpass(folder, nums, image_sets, recon_filtered_all):
     print("band pass")
     for u in range(1, 13):
         
-        # if u < 4:
-        #     plot_min = -3
-        #     plot_max = 2
-        # elif u == 4:
-        #     plot_min = -5
-        #     plot_max = -1
-        # elif u == 5:
-        #     plot_min = -7
-        #     plot_max = -3
-        # elif u == 6 or u == 7:
-        #     plot_min = -9
-        #     plot_max = -5.5
-        # elif u == 8:
-        #     plot_min = -11
-        #     plot_max = -8.5
-        # else:
-        #     plot_min = -11
-        #     plot_max = -8.9
-        
         true_images, measurements, reconstructions = image_sets
 
         band_filtered = recon_filtered_all[u - 1] - recon_filtered_all[u]
@@ -64,12 +45,7 @@ def bandpass(folder, nums, image_sets, recon_filtered_all):
         title = f"STD maps (band filtered: sigma={round(0.4*(u-1), 1)}-{round(0.4*u, 1)})"
         file = f"std_{round(0.4*(u-1), 1)}-{round(0.4*u, 1)}.png"
 
-        print("max: ", torch.max(variance))
-        print("min: ", torch.min(variance))
-
-        print(f"std_{round(0.4*(u-1), 1)}-{round(0.4*u, 1)}")
-        hist_var, edge_var = torch.histogram(variance[0, 0, 0, :, :, :], bins=100)
-        print(hist_var, edge_var)
+        # use the max and min pixel values as the color bar limits
         plot_min = torch.round(torch.min(variance))
         plot_max = torch.round(torch.max(variance))
 
@@ -82,25 +58,6 @@ def bandpass(folder, nums, image_sets, recon_filtered_all):
 def lowpass(folder, nums, image_sets, recon_filtered_all):
     print("low pass")
     for u in range(13):
-        
-        # if u < 4:
-        #     plot_min = -3
-        #     plot_max = 2
-        # elif u == 4:
-        #     plot_min = -5
-        #     plot_max = -1
-        # elif u == 5:
-        #     plot_min = -7
-        #     plot_max = -3
-        # elif u == 6:
-        #     plot_min = -9
-        #     plot_max = -5.5
-        # elif u == 7:
-        #     plot_min = -11
-        #     plot_max = -8.5
-        # else:
-        #     plot_min = -11
-        #     plot_max = -8.9
 
         true_images, measurements, reconstructions = image_sets
 
@@ -116,11 +73,16 @@ def lowpass(folder, nums, image_sets, recon_filtered_all):
         plot_max = torch.round(torch.max(variance))
         display_map(variance, title, folder + file, plot_min, plot_max)
 
-        # print("max: ", torch.max(variance))
-        # print("min: ", torch.min(variance))
-        # print(variance[0, 0, 0, :, :, :])
-
     return 0
 
+"""
+check histograms
+print("max: ", torch.max(variance))
+print("min: ", torch.min(variance))
 
+print(f"std_{round(0.4*(u-1), 1)}-{round(0.4*u, 1)}")
+hist_var, edge_var = torch.histogram(variance[0, 0, 0, :, :, :], bins=100)
+print(hist_var, edge_var)
+print(variance[0, 0, 0, :, :, :])
+"""
 
