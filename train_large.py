@@ -6,7 +6,7 @@ from common_large import get_diffusion_bridge_model, load_weights, save_weights
 
 # Get the model
 HU = np.sqrt(0.001695)/20
-measurement_noise_variance = (20*HU)**2.0
+measurement_noise_variance = (100*HU)**2.0
 diffusion_bridge_model = get_diffusion_bridge_model(measurement_noise_variance=measurement_noise_variance)
 
 # Load pre-trained weights if available
