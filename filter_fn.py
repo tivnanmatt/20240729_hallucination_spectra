@@ -32,9 +32,25 @@ def filter_recon(image_sets):
 def bandpass(folder, nums, image_sets, recon_filtered_all):
     print("band pass")
     for u in range(1, 13):
-        plot_min = -10
-        plot_max = 2
-
+        if u < 4:
+            plot_min = -3
+            plot_max = 2
+        elif u == 4:
+            plot_min = -5
+            plot_max = -1
+        elif u == 5:
+            plot_min = -7
+            plot_max = -3
+        elif u == 6 or u == 7:
+            plot_min = -9
+            plot_max = -5.5
+        elif u == 8:
+            plot_min = -11
+            plot_max = -8.5
+        else:
+            plot_min = -11
+            plot_max = -8.9
+        
         true_images, measurements, reconstructions = image_sets
 
         band_filtered = recon_filtered_all[u - 1] - recon_filtered_all[u]
@@ -63,8 +79,24 @@ def bandpass(folder, nums, image_sets, recon_filtered_all):
 def lowpass(folder, nums, image_sets, recon_filtered_all):
     print("low pass")
     for u in range(13):
-        plot_min = -10
-        plot_max = 2
+        if u < 4:
+            plot_min = -3
+            plot_max = 2
+        elif u == 4:
+            plot_min = -5
+            plot_max = -1
+        elif u == 5:
+            plot_min = -7
+            plot_max = -3
+        elif u == 6:
+            plot_min = -9
+            plot_max = -5.5
+        elif u == 7:
+            plot_min = -11
+            plot_max = -8.5
+        else:
+            plot_min = -11
+            plot_max = -8.9
 
         true_images, measurements, reconstructions = image_sets
 
@@ -80,6 +112,7 @@ def lowpass(folder, nums, image_sets, recon_filtered_all):
 
         # print("max: ", torch.max(variance))
         # print("min: ", torch.min(variance))
+        # print(variance[0, 0, 0, :, :, :])
 
     return 0
 
