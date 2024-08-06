@@ -72,7 +72,7 @@ def lowpass(folder, nums, image_sets, recon_filtered_all):
         plot_min = torch.round(torch.min(variance))
         plot_max = torch.round(torch.max(variance))
         display_map(variance, title, folder + file, plot_min, plot_max)
-
+    print("low pass variance: ", variance)
     return 0
 
 """
