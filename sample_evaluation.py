@@ -26,7 +26,7 @@ diffusion_bridge_model = get_diffusion_bridge_model(measurement_noise_variance=m
 
 # Load pre-trained weights if available
 weights_filename = 'weights/diffusion_backbone_weights_100HU.pth'
-weights_filename = 'weights/diffusion_backbone_weights_100HU_custom.pth'
+# weights_filename = 'weights/diffusion_backbone_weights_100HU_custom.pth'
 
 # If weights are available, load them
 if os.path.exists(weights_filename):

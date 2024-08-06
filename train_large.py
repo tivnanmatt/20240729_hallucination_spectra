@@ -1,8 +1,4 @@
 import os
-
-
-# set cuda visible devices to 1
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
