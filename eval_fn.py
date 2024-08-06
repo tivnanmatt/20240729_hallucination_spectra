@@ -75,43 +75,19 @@ def display_image_sets(folder, image_sets):
 def error_maps(folder, nums, image_sets):
     # mean over reconstructions
     mean = calculate_mean(nums, image_sets)
-    """
+    
     # MSE
     mse = calculate_mse(nums, image_sets, freq=False)
-    display_map(mse, "RMSE maps", folder + "rmse.png", 0, 50)
-    # print("MSE", mse)
-    # hist_mse, edge_mse = torch.histogram(mse[0, 0, 0, :, :, :], bins=100)
-    # print(hist_mse, edge_mse)
-    # fig = plt.plot(edge_mse[:-1], hist_mse)
-    # plt.title("mse")
-    # plt.xlim(0, 50)
-    # plt.show()
-    # plt.savefig("maps_a/mse_hist.png")
+    display_map(mse, "RMSE maps", folder + "rmse.png", 0, 40)
 
     # Bias-squared
     bias = calculate_bias(mean, nums, image_sets, freq=False)
-    display_map(bias, "Bias maps", folder + "bias.png", 0, 50)
-    # print("Bias", bias)
-    # hist_bias, edge_bias = torch.histogram(mse[0, 0, 0, :, :, :], bins=100)
-    # print(hist_bias, edge_bias)
-    # fig = plt.plot(edge_bias[:-1], hist_bias)
-    # plt.title("bias")
-    # plt.xlim(0, 50)
-    # plt.show()
-    # plt.savefig("maps_a/bias_hist.png")
+    display_map(bias, "Bias maps", folder + "bias.png", 0, 30)
 
     # Variance
     variance = calculate_variance(mean, nums, image_sets, freq=False)
     display_map(variance, "STD maps", folder + "std.png", 0, 40)
-    # print("Variance", variance)
-    # hist_var, edge_var = torch.histogram(mse[0, 0, 0, :, :, :], bins=100)
-    # print(hist_var, edge_var)
-    # fig = plt.plot(edge_var[:-1], hist_var)
-    # plt.title("var")
-    # plt.xlim(0, 50)
-    # plt.show()
-    # plt.savefig("maps_a/var_hist.png")
-    """
+    
     # filtered
     recon_filtered_all = filter_recon(image_sets)
     bandpass(folder, nums, image_sets, recon_filtered_all)
@@ -134,39 +110,15 @@ def error_freq(folder, nums, image_sets):
     # MSE
     mse = calculate_mse(nums, image_sets, freq=True)
     display_map(mse, "RMSE maps (frequency)", folder + "rmse_freq.png", 4, 10)
-    # print("MSE", mse)
-    # hist_mse, edge_mse = torch.histogram(mse[0, 0, 0, :, :, :], bins=100)
-    # print(hist_mse, edge_mse)
-    # fig = plt.plot(edge_mse[:-1], hist_mse)
-    # plt.title("mse")
-    # plt.xlim(0, 30)
-    # plt.show()
-    # plt.savefig("maps_a/mse_hist.png")
 
     # Bias-squared
     bias = calculate_bias(mean, nums, image_sets, freq=True)
     display_map(bias, "Bias maps (frequency)", folder + "bias_freq.png", 4, 10)
-    # print("Bias", bias)
-    # hist_bias, edge_bias = torch.histogram(bias[0, 0, 0, :, :, :], bins=100)
-    # print(hist_bias, edge_bias)
-    # fig2 = plt.plot(edge_bias[:-1], hist_bias)
-    # plt.title("bias")
-    # plt.xlim(0, 30)
-    # plt.show()
-    # plt.savefig("maps_a/bias_hist.png")
 
     # Variance
     variance = calculate_variance(mean, nums, image_sets, freq=True)
     display_map(variance, "STD maps (frequency)", folder + "std_freq.png", 4, 10)
-    # print("Variance", variance)
-    # hist_var, edge_var = torch.histogram(variance[0, 0, 0, :, :, :], bins=100)
-    # print(hist_var, edge_var)
-    # fig3 = plt.plot(edge_var[:-1], hist_var)
-    # plt.title("var")
-    # plt.xlim(0, 30)
-    # plt.show()
-    # plt.savefig("maps_a/var_hist.png")
-
+   
     return 0
 
 
@@ -202,3 +154,15 @@ def create_animation(folder, file, nums, image_sets):
 
     return 0
 
+"""
+check histogram
+# print("MSE", mse)
+# hist_mse, edge_mse = torch.histogram(mse[0, 0, 0, :, :, :], bins=100)
+# print(hist_mse, edge_mse)
+# fig = plt.plot(edge_mse[:-1], hist_mse)
+# plt.title("mse")
+# plt.xlim(0, 50)
+# plt.show()
+# plt.savefig("maps_a/mse_hist.png")
+
+"""
