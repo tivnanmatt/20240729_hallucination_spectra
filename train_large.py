@@ -6,11 +6,11 @@ from common_large import get_diffusion_bridge_model, load_weights, save_weights
 
 # Get the model
 HU = np.sqrt(0.001695)/20
-measurement_noise_variance = (100*HU)**2.0
+measurement_noise_variance = (20*HU)**2.0
 diffusion_bridge_model = get_diffusion_bridge_model(measurement_noise_variance=measurement_noise_variance, train=True, num_files=1)
 
 # Load pre-trained weights if available
-weights_filename = 'weights/diffusion_backbone_weights_100HU.pth'
+weights_filename = 'weights/diffusion_backbone_weights_20HU.pth'
 # weights_filename = 'weights/diffusion_backbone_weights_100HU_custom.pth'
 
 # If weights are available, load them
@@ -25,7 +25,7 @@ if os.path.exists(optimizer_filename):
 
 nRepeats = 1000
 for iRepeat in range(nRepeats):
-    training_loss = diffusion_bridge_model.train_diffusion_backbone(batch_size=4, 
+    training_loss = diffusion_bridge_model.train_diffusion_backbone(batch_size=2, 
                                                     num_epochs=20, 
                                                     num_iterations_per_epoch=100,
                                                     num_epochs_per_save=10,

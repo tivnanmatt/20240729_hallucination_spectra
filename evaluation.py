@@ -12,7 +12,7 @@ a. reconstruction given true images
 N=16, M=16, R=1
 
 """
-"""
+
 folder_a = "maps_a/"
 nums_a = 16, 16, 1, 512, 32
 image_sets_a = sample_recon(nums_a, noise_hu)
@@ -21,7 +21,7 @@ display_image_sets(folder_a, image_sets_a)
 create_animation(folder_a, "animation_a.mp4", nums_a, image_sets_a)
 error_maps(folder_a, nums_a, image_sets_a)
 error_freq(folder_a, nums_a, image_sets_a)
-"""
+
 
 """
 b. reconstruction given measurements
@@ -74,6 +74,7 @@ error_freq(folder_d, nums_d, image_sets_d)
 """
 debug
 """
+"""
 folder_debug = "debug/"
 nums_debug = 4, 16, 1, 512, 32
 image_sets_debug = sample_recon(nums_debug, noise_hu)
@@ -82,3 +83,4 @@ display_image_sets(folder_debug, image_sets_debug)
 # create_animation(folder_debug, "animation_debug.mp4", nums_debug, image_sets_debug)
 error_maps(folder_debug, nums_debug, image_sets_debug)
 # error_freq(folder_debug, nums_debug, image_sets_debug)
+"""
