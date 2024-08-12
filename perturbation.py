@@ -1,10 +1,13 @@
+from perturbation_fn import *
 
-# function to sample MNIST digits
-def sample_digits():
+train_num_files = 1  #16
+test_num_files = 1
 
-    return digits
+# insert digits into true images
+contrast = 10     #HU
+root = "TCGA_LIHC"
+true_images = load_data(root, train_num_files, test_num_files, train=True)
+perturbed_true = perturbation(true_images, contrast)
 
-# function to insert digits into true images
-def insert_digits(true_images, digits):
-
-    return perturbed_true
+# display the samples
+display(perturbed_true)
