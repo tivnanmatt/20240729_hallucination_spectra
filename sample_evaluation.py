@@ -2,7 +2,7 @@ import os
 
 
 # set cuda visible devices to 1
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,20 +12,20 @@ from common_large import get_diffusion_bridge_model, load_weights, save_weights
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 num_images = 1
-num_measurements_per_image = 1
+num_measurements_per_image = 8
 num_reconstructions_per_measurement = 1
 
-num_timesteps = 8
+num_timesteps = 32
 
 sample_images = True
 
 # Get the model
 HU = np.sqrt(0.001695)/20
-measurement_noise_variance = (100*HU)**2.0
+measurement_noise_variance = (20*HU)**2.0
 diffusion_bridge_model = get_diffusion_bridge_model(measurement_noise_variance=measurement_noise_variance, train=False, num_files=1)
 
 # Load pre-trained weights if available
-weights_filename = 'weights/diffusion_backbone_weights_100HU.pth'
+weights_filename = 'weights/diffusion_backbone_weights_20HU.pth'
 # weights_filename = 'weights/diffusion_backbone_weights_100HU_custom.pth'
 
 # If weights are available, load them

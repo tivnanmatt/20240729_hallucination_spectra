@@ -25,7 +25,7 @@ if os.path.exists(optimizer_filename):
 
 nRepeats = 1000
 for iRepeat in range(nRepeats):
-    training_loss = diffusion_bridge_model.train_diffusion_backbone(batch_size=2, 
+    training_loss = diffusion_bridge_model.train_diffusion_backbone(batch_size=4, 
                                                     num_epochs=20, 
                                                     num_iterations_per_epoch=100,
                                                     num_epochs_per_save=10,

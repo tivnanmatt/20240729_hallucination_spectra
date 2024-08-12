@@ -1,0 +1,36 @@
+import torch
+import torchvision
+import torchvision.datasets as datasets
+
+sigma = 487.3876
+mu = -572.3446
+
+# function to sample MNIST digits
+def sample_digits():
+    digits = datasets.MNIST(root='./MNIST', train=True, download=True, transform=None)
+    return digits
+
+# function to convert true images from HU to standard units
+def normalization(true_images):
+    true_normalized = (true_images - mu) / sigma
+    return true_normalized
+
+# function to insert digits into true images
+def insert_digits(true_normalized, digits):
+    num_images = true_normalized.size(dim=0)
+    # go through each image in true_normalized
+    for n in range(num_images):
+        # randomly select a pair of row and column
+
+        # insert one digit at the pair of row and column
+        true_normalized[n, 0, iRow:(iRow+28), iCol:(Col+28)] += contrast * digits[n, 0, :, :]
+
+    return perturbed_true
+
+# create perturbed true images
+def perturbation(true_images):
+    digits = sample_digits()
+    true_normalized = normalization(true_images)
+    perturbed_true = insert_digits(true_normalized, digits)
+
+    return perturbed_true

@@ -67,12 +67,13 @@ def lowpass(folder, nums, image_sets, recon_filtered_all):
 
         mean = calculate_mean(nums, image_sets)
         variance = calculate_variance(mean, nums, image_sets, freq=False)
+        
         title = f"STD maps (lowpass filtered: sigma={round(0.4*u, 1)})"
         file = f"std_{round(0.4*u, 1)}.png"
         plot_min = torch.round(torch.min(variance))
         plot_max = torch.round(torch.max(variance))
         display_map(variance, title, folder + file, plot_min, plot_max)
-    print("low pass variance: ", variance)
+
     return 0
 
 """

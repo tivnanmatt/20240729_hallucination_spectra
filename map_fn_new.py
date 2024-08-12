@@ -8,7 +8,7 @@ import laboratory as lab
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 loader = lab.torch.datasets.TCGA(
-                            root='TCGA_LIHC/testing/',
+                            root='TCGA_LIHC',
                             train=False).to(device)
 mean = loader.mu
 print("loader mean:", mean)
