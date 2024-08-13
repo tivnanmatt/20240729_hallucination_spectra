@@ -11,37 +11,38 @@ digit_pixels = 28
 
 # function to sample MNIST digits
 def sample_digits():
+    # transform to tensor will add one dimension to the 1x28x28 images
     trans = transforms.Compose([transforms.ToTensor()])
     mnist = datasets.MNIST(root='./MNIST', train=True, download=True, transform=trans)
     data_loader = torch.utils.data.DataLoader(mnist)
     digit_list = []
+
     for digit, label in data_loader:
         digit_list.append(digit)
+    
+    # convert from array to tensor
     digits = torch.cat(digit_list)
     
-    # similar processing with the true images
-    # Add an extra dimension for channels on axis 1
-    # digits = torch.unsqueeze(digits, 1)
     # Convert to float
     digits = digits.float()
 
     return digits
 
-# function to convert true images from HU to standard units
+# convert true images from HU to standard units
 def normalization(true_images):
     true_normalized = (true_images - mu) / sigma
     return true_normalized
 
-# function to insert digits into true images
+# insert digits into true images
 def insert_digits(true_normalized, digits, contrast):
     num_images = true_normalized.size(dim=0)
+
     # go through each image in true_normalized
     for n in range(num_images):
         # randomly select a pair of row and column
         iRow = random.randrange(50, num_pixels - digit_pixels - 50)
         iCol = random.randrange(num_pixels - digit_pixels)
-        if n == 100:
-            print(iRow, iCol)
+
         # insert one digit at the pair of row and column
         true_normalized[n, 0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)] += contrast * digits[n, 0, :, :]
 
@@ -82,8 +83,8 @@ def load_data(root, train_num_files, test_num_files, train):
 
     return images
 
-# display the perturbed true images
 """
+# display the perturbed true images
 def display(perturbed_true):
     perturbed_true_display = rescale_abdomen_window(standard_to_hu(perturbed_true))
     fig = plt.figure(figsize=(5, 5))
@@ -95,25 +96,23 @@ def display(perturbed_true):
     plt.savefig('MNIST_sample/perturbed_2.png')
 
     return 0
-
 """
 
 # display the differences
-def display(true_normalized, perturbed_true):
-    num = 100
+def display(num, true_normalized, perturbed_true):
     vmin = 0
     vmax = 1
     true_display = rescale_abdomen_window(standard_to_hu(true_normalized))
     perturbed_true_display = rescale_abdomen_window(standard_to_hu(perturbed_true))
     difference = perturbed_true_display - true_display
 
+    # plot the original true image, perturbed true image, and the difference between them
     fig, ax = plt.subplots(1, 3, figsize=(15, 5))
     im1 = ax[0].imshow(true_display[num, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
     ax[0].set_title("True Image")
     im2 = ax[1].imshow(perturbed_true_display[num, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
     ax[1].set_title("True Image with a Digit")
-    # im3 = ax[2].imshow(difference[num, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
-    im3 = ax[2].imshow(difference[num, 0, :, :].detach().cpu(), cmap='gray')
+    im3 = ax[2].imshow(difference[num, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
     ax[2].set_title("Difference")
 
     for a in ax:

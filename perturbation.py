@@ -11,4 +11,5 @@ true_normalized = normalization(true_images)
 perturbed_true = perturbation(true_images, contrast)
 
 # display the samples
-display(true_normalized, perturbed_true)
+num = 100
+display(num, true_normalized, perturbed_true)
