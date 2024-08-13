@@ -40,8 +40,10 @@ def insert_digits(true_normalized, digits, contrast):
     # go through each image in true_normalized
     for n in range(num_images):
         # randomly select a pair of row and column
-        iRow = random.randrange(50, num_pixels - digit_pixels - 50)
-        iCol = random.randrange(num_pixels - digit_pixels)
+        iRow = random.randrange(150, num_pixels - digit_pixels - 150)
+        iCol = random.randrange(150, num_pixels - digit_pixels - 150)
+        if n == 100:
+            print(iRow, iCol)
 
         # insert one digit at the pair of row and column
         true_normalized[n, 0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)] += contrast * digits[n, 0, :, :]
@@ -56,8 +58,6 @@ def perturbation(true_images, contrast):
     perturbed_true = insert_digits(true_normalized, digits, contrast_normalized)
 
     return perturbed_true
-
-
 
 # load data, modified from the code in laboratory
 def load_data(root, train_num_files, test_num_files, train):
@@ -83,23 +83,9 @@ def load_data(root, train_num_files, test_num_files, train):
 
     return images
 
-"""
-# display the perturbed true images
-def display(perturbed_true):
-    perturbed_true_display = rescale_abdomen_window(standard_to_hu(perturbed_true))
-    fig = plt.figure(figsize=(5, 5))
-    vmin = 0
-    vmax = 1
-    plt.imshow(perturbed_true_display[10, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
-    plt.axis('off')
-    plt.title('True Image with a Digit')
-    plt.savefig('MNIST_sample/perturbed_2.png')
-
-    return 0
-"""
 
 # display the differences
-def display(num, true_normalized, perturbed_true):
+def display(num, filename, true_normalized, perturbed_true):
     vmin = 0
     vmax = 1
     true_display = rescale_abdomen_window(standard_to_hu(true_normalized))
@@ -107,18 +93,20 @@ def display(num, true_normalized, perturbed_true):
     difference = perturbed_true_display - true_display
 
     # plot the original true image, perturbed true image, and the difference between them
-    fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+    fig, ax = plt.subplots(1, 4, figsize=(15, 5))
     im1 = ax[0].imshow(true_display[num, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
     ax[0].set_title("True Image")
     im2 = ax[1].imshow(perturbed_true_display[num, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
     ax[1].set_title("True Image with a Digit")
     im3 = ax[2].imshow(difference[num, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
     ax[2].set_title("Difference")
+    im4 = ax[3].imshow(difference[num, 0, :, :].detach().cpu(), cmap='gray')
+    ax[3].set_title("Difference without limits")
 
     for a in ax:
         a.set_xticks([])
         a.set_yticks([])
-    plt.savefig('MNIST_sample/perturbed_100_narrow.png')
+    plt.savefig(filename)
 
     return 0
 
