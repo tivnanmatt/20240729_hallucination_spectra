@@ -15,7 +15,7 @@ N=16, M=16, R=1
 """
 
 folder_a = "samples_a/"
-nums_a = 4, 4, 1, 512, 16
+nums_a = 4, 4, 1, 512, 32
 # without perturbation
 image_sets_a = sample_fn(nums_a, noise_hu, contrast, perturbation=False)
 meas_var_a = check_measurement_var(nums_a, image_sets_a)

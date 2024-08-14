@@ -63,6 +63,7 @@ def sample_fn(nums, noise_hu, contrast, perturbation=False):
              # insert digits
             if perturbation:
                 perturbed_true[iImage, 0, 0] = add_digits(true_images[iImage, 0, 0], digits, iImage, contrast)
+                true_images[iImage, 0, 0] = perturbed_true[iImage, 0, 0]
             
             for iMeasurement in range(num_measurements_per_image):
                 measurements[iImage, iMeasurement,0] = diffusion_bridge_model.sample_measurements_given_images(true_images[iImage,0,0])
@@ -72,10 +73,7 @@ def sample_fn(nums, noise_hu, contrast, perturbation=False):
                    
                     print(f'Image {iImage+1}/{num_images}, Measurement {iMeasurement+1}/{num_measurements_per_image}, Reconstruction {iReconstruction+1}/{num_reconstructions_per_measurement}')
     
-    if perturbation:
-        image_sets = perturbed_true, measurements, reconstructions
-    else: 
-        image_sets = true_images, measurements, reconstructions
+    image_sets = true_images, measurements, reconstructions
 
     return image_sets
 

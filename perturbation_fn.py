@@ -11,6 +11,7 @@ digit_pixels = 28
 
 # function to sample MNIST digits
 def sample_digits():
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # transform to tensor will add one dimension to the 1x28x28 images
     trans = transforms.Compose([transforms.ToTensor()])
     mnist = datasets.MNIST(root='./MNIST', train=True, download=True, transform=trans)
@@ -23,8 +24,9 @@ def sample_digits():
     # convert from array to tensor
     digits = torch.cat(digit_list)
     
-    # Convert to float
-    digits = digits.float()
+    # Convert to GPU
+    digits = digits.float().to(device)
+
 
     return digits
 
@@ -61,8 +63,8 @@ def perturbation(true_images, contrast):
 
 # add digits to a single true image
 def add_digits(true_image, digits, iImage, contrast):
+    contrast_normalized = normalization(contrast)
     threshold = normalization(-300)
-    true_normalized = normalization(true_image)
     inside = False
 
     # check if the random spot is inside patient tissue
@@ -71,19 +73,21 @@ def add_digits(true_image, digits, iImage, contrast):
         iRow = random.randrange(num_pixels - digit_pixels)
         iCol = random.randrange(num_pixels - digit_pixels)
         # check inside the tissue
-        region = true_normalized[iImage, 0, 0, 0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)] 
+        region = true_image[0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)] 
         inside = inside_tissue(region, threshold)
 
     # insert one digit at the pair of row and column
-    true_normalized[iImage, 0, 0, 0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)] += contrast * digits[iImage, 0, 0, 0, :, :]
+    digit = digits[iImage]
+    true_image[0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)] += contrast_normalized * digit[0, :, :]
 
-    return true_normalized
+    return true_image
 
 # check if the region is inside tissue
 def inside_tissue(region, threshold):
-    # region + digit_pixels
-    avg = torch.mean(region, dim=(4, 5))
+    print(threshold)
+    avg = torch.mean(region)
     if avg >= threshold:
+        print(avg)
         return True
     else:
         return False
@@ -122,15 +126,13 @@ def display(num, filename, true_normalized, perturbed_true):
     difference = perturbed_true_display - true_display
 
     # plot the original true image, perturbed true image, and the difference between them
-    fig, ax = plt.subplots(1, 4, figsize=(15, 5))
-    im1 = ax[0].imshow(true_display[num, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
+    fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+    im1 = ax[0].imshow(true_display[num, 0, 0, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
     ax[0].set_title("True Image")
-    im2 = ax[1].imshow(perturbed_true_display[num, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
+    im2 = ax[1].imshow(perturbed_true_display[num, 0, 0, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
     ax[1].set_title("True Image with a Digit")
-    im3 = ax[2].imshow(difference[num, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
+    im3 = ax[2].imshow(difference[num, 0, 0, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
     ax[2].set_title("Difference")
-    im4 = ax[3].imshow(difference[num, 0, :, :].detach().cpu(), cmap='gray')
-    ax[3].set_title("Difference without limits")
 
     for a in ax:
         a.set_xticks([])
