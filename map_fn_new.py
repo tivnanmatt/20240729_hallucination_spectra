@@ -115,9 +115,9 @@ def calculate_variance(mean, nums, image_sets, freq=False):
 # error (the quantity to be plotted) has to be normalized already
 def display_map(error, title, filename, plot_min, plot_max):
     num = 0
-    fig, ax = plt.subplots(4, 4, figsize=(15, 5))
-    for col in range(4):
-        for row in range(4):
+    fig, ax = plt.subplots(2, 2, figsize=(15, 5))
+    for col in range(2):
+        for row in range(2):
             im = ax[col, row].imshow(error[num, 0, 0, 0, :, :].detach().cpu(), cmap='gray', vmin=plot_min, vmax=plot_max)
             ax[col, row].set_xticks([])
             ax[col, row].set_yticks([])
@@ -139,3 +139,14 @@ def display_map(error, title, filename, plot_min, plot_max):
     print(filename + " saved")
 
     return 0
+
+# average the error maps over pixels (dimensions 4 and 5), get one error for each patient
+def avg_across_pixels(error_maps):
+    errors = torch.mean(error_maps, dim=(4,5))
+    return errors
+
+# average and std among the patients
+def avg_across_patients(errors):
+    error = torch.mean(errors, dim=0)
+    std = torch.std(errors, dim=0)
+    return error, std

@@ -59,6 +59,35 @@ def perturbation(true_images, contrast):
 
     return perturbed_true
 
+# add digits to a single true image
+def add_digits(true_image, digits, iImage, contrast):
+    threshold = normalization(-300)
+    true_normalized = normalization(true_image)
+    inside = False
+
+    # check if the random spot is inside patient tissue
+    while(not inside):
+        # randomly select a pair of row and column
+        iRow = random.randrange(num_pixels - digit_pixels)
+        iCol = random.randrange(num_pixels - digit_pixels)
+        # check inside the tissue
+        region = true_normalized[iImage, 0, 0, 0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)] 
+        inside = inside_tissue(region, threshold)
+
+    # insert one digit at the pair of row and column
+    true_normalized[iImage, 0, 0, 0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)] += contrast * digits[iImage, 0, 0, 0, :, :]
+
+    return true_normalized
+
+# check if the region is inside tissue
+def inside_tissue(region, threshold):
+    # region + digit_pixels
+    avg = torch.mean(region, dim=(4, 5))
+    if avg >= threshold:
+        return True
+    else:
+        return False
+
 # load data, modified from the code in laboratory
 def load_data(root, train_num_files, test_num_files, train):
     if train:    

@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from common_large import get_diffusion_bridge_model, load_weights, save_weights
+from perturbation_fn import *
 
 # num_images = 1
 # num_measurements_per_image = 8
@@ -16,7 +17,7 @@ from common_large import get_diffusion_bridge_model, load_weights, save_weights
 
 # sample_images = True
 
-def sample_fn(nums, noise_hu):
+def sample_fn(nums, noise_hu, contrast, perturbation=False):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     num_images, num_measurements_per_image, num_reconstructions_per_measurement, num_pixels, num_timesteps = nums
 
@@ -46,13 +47,22 @@ def sample_fn(nums, noise_hu):
     measurement_shape = measurements[0].shape
     reconstruction_shape = reconstructions[0].shape
 
+    if perturbation:
+        perturbed_true = torch.zeros((num_images, 1, 1, *image_shape), dtype=true_image.dtype, device=true_image.device)
+
     true_images = torch.zeros((num_images, 1, 1, *image_shape), dtype=true_image.dtype, device=true_image.device)
     measurements = torch.zeros((num_images, num_measurements_per_image, 1, *measurement_shape), dtype=measurements.dtype, device=measurements.device)
     reconstructions = torch.zeros((num_images, num_measurements_per_image, num_reconstructions_per_measurement, *reconstruction_shape), dtype=reconstructions.dtype, device=reconstructions.device)
 
+    if perturbation:
+        digits = sample_digits()
+
     with torch.no_grad():                 
         for iImage in range(num_images):
             true_images[iImage, 0, 0] = diffusion_bridge_model.image_dataset.images[iImage]
+             # insert digits
+            if perturbation:
+                perturbed_true[iImage, 0, 0] = add_digits(true_images[iImage, 0, 0], digits, iImage, contrast)
             
             for iMeasurement in range(num_measurements_per_image):
                 measurements[iImage, iMeasurement,0] = diffusion_bridge_model.sample_measurements_given_images(true_images[iImage,0,0])
@@ -61,7 +71,12 @@ def sample_fn(nums, noise_hu):
                     reconstructions[iImage, iMeasurement, iReconstruction] = diffusion_bridge_model.sample_reconstructions_given_measurements(measurements[iImage, iMeasurement,0].unsqueeze(0), timesteps=timesteps, verbose=True)[0][0]
                    
                     print(f'Image {iImage+1}/{num_images}, Measurement {iMeasurement+1}/{num_measurements_per_image}, Reconstruction {iReconstruction+1}/{num_reconstructions_per_measurement}')
-    image_sets = true_images, measurements, reconstructions
+    
+    if perturbation:
+        image_sets = perturbed_true, measurements, reconstructions
+    else: 
+        image_sets = true_images, measurements, reconstructions
+
     return image_sets
 
 

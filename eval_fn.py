@@ -2,7 +2,6 @@ import torch
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from common_large import get_diffusion_bridge_model, load_weights
-# import laboratory_tcga as lab
 from map_fn_new import *
 from filter_fn import *
 
@@ -76,24 +75,27 @@ def error_maps(folder, nums, image_sets):
     # mean over reconstructions
     mean = calculate_mean(nums, image_sets)
     
-    # MSE
-    mse = calculate_mse(nums, image_sets, freq=False)
-    display_map(mse, "RMSE maps", folder + "rmse.png", 0, 40)
+    # RMSE
+    rmse = calculate_mse(nums, image_sets, freq=False)
+    display_map(rmse, "RMSE maps", folder + "rmse.png", 0, 40)
 
-    # Bias-squared
+    # Bias
     bias = calculate_bias(mean, nums, image_sets, freq=False)
-    display_map(bias, "Bias maps", folder + "bias.png", 0, 30)
+    display_map(bias, "Bias maps", folder + "bias.png", 0, 40)
 
-    # Variance
-    variance = calculate_variance(mean, nums, image_sets, freq=False)
-    display_map(variance, "STD maps", folder + "std.png", 0, 40)
+    # STD
+    std = calculate_variance(mean, nums, image_sets, freq=False)
+    display_map(std, "STD maps", folder + "std.png", 0, 40)
+
+    # average across pixels and patients
+
     
     # filtered
     recon_filtered_all = filter_recon(image_sets)
     bandpass(folder, nums, image_sets, recon_filtered_all)
     lowpass(folder, nums, image_sets, recon_filtered_all)
 
-    return 0
+    return rmse, bias, std
 
 
 def error_freq(folder, nums, image_sets):
@@ -108,19 +110,73 @@ def error_freq(folder, nums, image_sets):
     mean = calculate_mean(nums, image_sets)
 
     # MSE
-    mse = calculate_mse(nums, image_sets, freq=True)
-    display_map(mse, "RMSE maps (frequency)", folder + "rmse_freq.png", 4, 10)
+    rmse = calculate_mse(nums, image_sets, freq=True)
+    display_map(rmse, "RMSE maps (frequency)", folder + "rmse_freq.png", 4, 10)
 
     # Bias-squared
     bias = calculate_bias(mean, nums, image_sets, freq=True)
     display_map(bias, "Bias maps (frequency)", folder + "bias_freq.png", 4, 10)
 
     # Variance
-    variance = calculate_variance(mean, nums, image_sets, freq=True)
-    display_map(variance, "STD maps (frequency)", folder + "std_freq.png", 4, 10)
+    std = calculate_variance(mean, nums, image_sets, freq=True)
+    display_map(std, "STD maps (frequency)", folder + "std_freq.png", 4, 10)
    
+    return rmse, bias, std
+
+
+def error_avg(error_maps):
+    # average across pixels
+    errors = avg_across_pixels(error_maps)
+    # average across patients
+    error, std = avg_across_patients(errors)
+
+    return error, std
+
+def calculate_error(rmse, bias, std, frequency):
+    if frequency:
+        print("Frequency domain: ")
+    rmse_avg, rmse_std= error_avg(rmse)
+    print(f"RMSE {round(rmse_avg[0].item(), 2)}" + u"\u00B1" f"{round(rmse_std[0].item(), 2)}")
+    bias_avg, bias_std= error_avg(bias)
+    print(f"BIAS {round(bias_avg[0].item(), 2)}" + u"\u00B1" f"{round(bias_std[0].item(), 2)}")
+    std_avg, std_std= error_avg(std)
+    print(f"STD {round(std_avg[0].item(), 2)}" + u"\u00B1" f"{round(std_std[0].item(), 2)}")
+
+    all_errors = rmse_avg, rmse_std, bias_avg, bias_std, std_avg, std_std
+
+    return all_errors
+
+def plot_error(folder, all_errors, all_errors_digit, frequency=False):
+    rmse_avg, rmse_std, bias_avg, bias_std, std_avg, std_std = all_errors
+    rmse_avg_d, rmse_std_d, bias_avg_d, bias_std_d, std_avg_d, std_std_d = all_errors_digit
+    if frequency:
+        bar_plot_error("RMSE (frequency)", folder + "rmse_bar_f.png", rmse_avg, rmse_std, rmse_avg_d, rmse_std_d)
+        bar_plot_error("Bias (frequency)", folder + "bias_bar_f.png", bias_avg, bias_std, bias_avg_d, bias_std_d)
+        bar_plot_error("STD (frequency)", folder + "std_bar_f.png", std_avg, std_std, std_avg_d, std_std_d)
+
+    else:
+        bar_plot_error("RMSE", folder + "rmse_bar.png", rmse_avg, rmse_std, rmse_avg_d, rmse_std_d)
+        bar_plot_error("Bias", folder + "bias_bar.png", bias_avg, bias_std, bias_avg_d, bias_std_d)
+        bar_plot_error("STD", folder + "std_bar.png", std_avg, std_std, std_avg_d, std_std_d)
+
     return 0
 
+def bar_plot_error(title, filename, error_1, std_1, error_2, std_2):
+    groups = ["True Images", "True Images with Digits"]
+    error = [error_1, error_2]
+    std = [std_1, std_2]
+
+    colors = ["darkgray", "dimgray"]
+
+    fig, ax = plt.subplots(figsize=(4, 5))
+    im = ax.bar(groups, error, yerr=std, color=colors)
+    ax.bar_label(im, labels = [f"{round(error_1, 2)}" + u"\u00B1" f"{round(std_1, 2)}", 
+                               f"{round(error_2, 2)}" + u"\u00B1" f"{round(std_2, 2)}"])
+    ax.set_title(title, weight="bold")
+    plt.show()
+    plt.savefig(filename)
+
+    return 0
 
 def create_animation(folder, file, nums, image_sets):
     true_images, measurements, reconstructions = image_sets
