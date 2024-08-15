@@ -15,7 +15,8 @@ N=16, M=16, R=1
 """
 
 folder_a = "samples_a/"
-nums_a = 4, 4, 1, 512, 32
+nums_a = 16, 16, 16, 512, 32
+record_a = 'record_error_a.txt'
 # without perturbation
 image_sets_a = sample_fn(nums_a, noise_hu, contrast, perturbation=False)
 meas_var_a = check_measurement_var(nums_a, image_sets_a)
@@ -24,22 +25,27 @@ create_animation(folder_a, "animation_a.mp4", nums_a, image_sets_a)
 
 rmse, bias, std = error_maps(folder_a, nums_a, image_sets_a)
 all_errors = calculate_error(rmse, bias, std, frequency=False)
+record_errors(all_errors, record_a, frequency=False, perturbation=False)
 rmse_f, bias_f, std_f = error_freq(folder_a, nums_a, image_sets_a)
 all_errors_f = calculate_error(rmse_f, bias_f, std_f, frequency=True)
+record_errors(all_errors_f, record_a, frequency=True, perturbation=False)
 
 folder_a_d = "samples_a_d/"
 # with perturbation
-image_sets_a_d = sample_fn(nums_a, noise_hu, contrast, perturbation=False)
+image_sets_a_d = sample_fn(nums_a, noise_hu, contrast, perturbation=True)
 meas_var_a_d = check_measurement_var(nums_a, image_sets_a_d)
 display_image_sets(folder_a_d, image_sets_a_d)
 create_animation(folder_a_d, "animation_a_d.mp4", nums_a, image_sets_a_d)
 
 rmse_d, bias_d, std_d = error_maps(folder_a_d, nums_a, image_sets_a_d)
 all_errors_d = calculate_error(rmse_d, bias_d, std_d, frequency=False)
+record_errors(all_errors_d, record_a, frequency=False, perturbation=True)
 rmse_f_d, bias_f_d, std_f_d = error_freq(folder_a_d, nums_a, image_sets_a_d)
 all_errors_f_d = calculate_error(rmse_f_d, bias_f_d, std_f_d, frequency=True)
+record_errors(all_errors_f_d, record_a, frequency=True, perturbation=True)
 
 # plot for comparison
+display_difference(folder_a_d, image_sets_a, image_sets_a_d)
 # image domain
 plot_error(folder_a_d, all_errors, all_errors_d, frequency=False)
 # frequency domain

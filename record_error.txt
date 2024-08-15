@@ -1,0 +1,4 @@
+Freqeuncy domain. With digits. 
+RMSE 12±0.2
+BIAS 10±0.35
+STD 8±0.19

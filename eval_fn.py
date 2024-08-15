@@ -4,6 +4,9 @@ import matplotlib.animation as animation
 from common_large import get_diffusion_bridge_model, load_weights
 from map_fn_new import *
 from filter_fn import *
+import numpy
+import pandas as pd
+import seaborn as sns
 
 plot_min = -160
 plot_max = 240
@@ -69,6 +72,18 @@ def display_image_sets(folder, image_sets):
     display_map(measurements, "Measurements", folder + "measurements.png", plot_min, plot_max)
     display_map(reconstructions, "Reconstructions", folder + "reconstructions.png", plot_min, plot_max)
 
+    return 0
+
+def display_difference(folder, image_sets, image_sets_d):
+    true_images, measurements, reconstructions = image_sets
+    true_images_d, measurements_d, reconstructions_d = image_sets_d
+
+    mean, std = get_mean_std()
+    difference = true_images_d - true_images
+    difference = difference * std  + mean
+    display_map(difference, "Difference between true images and perturbed true images", 
+                folder + "difference.png", plot_min, plot_max)
+    
     return 0
 
 def error_maps(folder, nums, image_sets):
@@ -163,18 +178,83 @@ def plot_error(folder, all_errors, all_errors_digit, frequency=False):
 
 def bar_plot_error(title, filename, error_1, std_1, error_2, std_2):
     groups = ["True Images", "True Images with Digits"]
-    error = [error_1, error_2]
-    std = [std_1, std_2]
+    error = [error_1[0].item(), error_2[0].item()]
+    std = [std_1[0].item(), std_2[0].item()]
 
     colors = ["darkgray", "dimgray"]
 
     fig, ax = plt.subplots(figsize=(4, 5))
     im = ax.bar(groups, error, yerr=std, color=colors)
-    ax.bar_label(im, labels = [f"{round(error_1, 2)}" + u"\u00B1" f"{round(std_1, 2)}", 
-                               f"{round(error_2, 2)}" + u"\u00B1" f"{round(std_2, 2)}"])
+    ax.bar_label(im, labels = [f"{round(error[0], 2)}" + u"\u00B1" f"{round(std[0], 2)}", 
+                               f"{round(error[1], 2)}" + u"\u00B1" f"{round(std[1], 2)}"])
     ax.set_title(title, weight="bold")
     plt.show()
     plt.savefig(filename)
+
+    return 0
+"""
+def violin_plot_error(error_vector, error_vector_f, error_vector_d, error_vector_d_f):
+    rmse, bias, std = error_vector
+    rmse_f, bias_f, std_f = error_vector_f
+    rmse_d, bias_d, std_d = error_vector_d
+    rmse_d_f, bias_d_f, std_d_f = error_vector_d_f
+
+    # tensors to numpy arrays
+    rmse = rmse.numpy()
+    rmse_d = rmse_d.numpy()
+    rmse_f = rmse_f.numpy()
+    rmse_d_f = rmse_d_f.numpy() 
+
+    bias = bias.numpy()
+    bias_d = bias_d.numpy()
+    bias_f = bias_f.numpy()
+    bias_d_f = bias_d_f.numpy()
+
+    std = std.numpy()
+    std_d = std_d.numpy()
+    std_f = std_f.numpy()
+    std_d_f = std_d_f.numpy()
+
+    # concatenate arrays, put that into df
+    # need to check the shape of the error vectors, determine which direction to concatenate
+
+    # numpy arrays to dataframe
+    header = pd.MultiIndex.from_product([['RMSE', 'RMSE (frequency)', 'Bias', 'Bias (frequency)', 'STD', 'STD (frequency)'], 
+                                         ['True images', 'True images with digits']],
+                                         names=['error type', 'true type'])
+    df = pd.DataFrame(data, columns=header)
+
+    fig, ax = plt.subplots(figsize=(15, 5))
+    sns.violinplot(data=df, x='error type', y=, hue='true type', split='true', inner='box', 
+                   palette={"True images": "darkgray", "True image with digits": "dimgray"})
+    fig.suptitle("Evaluation Error", fontweight='bold')
+    ax.set_xlabel('error type')
+    ax.set_ylabel('Error')
+
+
+    return 0
+"""
+    
+# output mean and std of errors
+def record_errors(all_errors, filename, frequency=False, perturbation=False):
+    rmse_avg, rmse_std, bias_avg, bias_std, std_avg, std_std = all_errors
+    file = open(filename, 'a')
+    rmse = f"RMSE {round(rmse_avg[0].item(), 2)}" + u"\u00B1" f"{round(rmse_std[0].item(), 2)}\n"
+    bias = f"BIAS {round(bias_avg[0].item(), 2)}" + u"\u00B1" f"{round(bias_std[0].item(), 2)}\n"
+    std = f"STD {round(std_avg[0].item(), 2)}" + u"\u00B1" f"{round(std_std[0].item(), 2)}\n"
+
+    if frequency:
+        file.write("Frequency domain. ")
+    if perturbation:
+        file.write("With digits. ")
+
+    file.write("\n")
+    file.write(rmse)
+    file.write(bias)
+    file.write(std)
+    file.write("\n")
+
+    file.close()
 
     return 0
 
