@@ -1,0 +1,60 @@
+
+RMSE 10.2±2.03
+BIAS 5.29±1.26
+STD 8.31±1.53
+
+Frequency domain. 
+RMSE 8.44±0.28
+BIAS 7.78±0.35
+STD 8.19±0.24
+
+With digits. 
+RMSE 10.2±2.03
+BIAS 5.29±1.26
+STD 8.31±1.53
+
+Frequency domain. With digits. 
+RMSE 8.44±0.28
+BIAS 7.78±0.35
+STD 8.19±0.24
+
+
+RMSE 10.2±2.03
+BIAS 5.29±1.26
+STD 8.31±1.53
+
+Frequency domain. 
+RMSE 8.44±0.28
+BIAS 7.78±0.35
+STD 8.19±0.24
+
+With digits. 
+RMSE 10.2±2.03
+BIAS 5.29±1.26
+STD 8.31±1.53
+
+Frequency domain. With digits. 
+RMSE 8.44±0.28
+BIAS 7.78±0.35
+STD 8.19±0.24
+
+
+RMSE 10.2±2.04
+BIAS 5.29±1.27
+STD 8.3±1.52
+
+Frequency domain. 
+RMSE 8.44±0.29
+BIAS 7.78±0.35
+STD 8.19±0.24
+
+With digits. 
+RMSE 10.23±2.03
+BIAS 5.3±1.26
+STD 8.33±1.53
+
+Frequency domain. With digits. 
+RMSE 8.45±0.28
+BIAS 7.8±0.33
+STD 8.19±0.24
+

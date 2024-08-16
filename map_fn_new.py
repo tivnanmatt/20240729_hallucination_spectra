@@ -117,7 +117,7 @@ def display_map(error, title, filename, plot_min, plot_max):
     num = 0
     fig, ax = plt.subplots(2, 2, figsize=(15, 5))
     for col in range(2):
-        for row in range(2):
+        for row in range():
             im = ax[col, row].imshow(error[num, 0, 0, 0, :, :].detach().cpu(), cmap='gray', vmin=plot_min, vmax=plot_max)
             ax[col, row].set_xticks([])
             ax[col, row].set_yticks([])

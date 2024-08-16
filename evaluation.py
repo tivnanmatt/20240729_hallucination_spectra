@@ -51,18 +51,18 @@ record_errors(all_errors_d, record_a, frequency=False, perturbation=True)
 torch.save(error_vectors_d, folder_a + 'error_vectors_d.pt')
 torch.save(all_errors_d, folder_a_d + 'all_errors_d.pt')
 
-rmse_f_d, bias_f_d, std_f_d = error_freq(folder_a_d, nums_a, image_sets_a_d)
-all_errors_f_d, error_vectors_f_d = calculate_error(rmse_f_d, bias_f_d, std_f_d, frequency=True)
-record_errors(all_errors_f_d, record_a, frequency=True, perturbation=True)
-torch.save(error_vectors_f_d, folder_a + 'error_vectors_f_d.pt')
-torch.save(all_errors_f_d, folder_a + 'all_errors_f_d.pt')
+rmse_d_f, bias_d_f, std_d_f = error_freq(folder_a_d, nums_a, image_sets_a_d)
+all_errors_d_f, error_vectors_d_f = calculate_error(rmse_d_f, bias_d_f, std_d_f, frequency=True)
+record_errors(all_errors_d_f, record_a, frequency=True, perturbation=True)
+torch.save(error_vectors_d_f, folder_a + 'error_vectors_d_f.pt')
+torch.save(all_errors_d_f, folder_a + 'all_errors_d_f.pt')
 
 # plot for comparison
 display_difference(folder_a_d, image_sets_a, image_sets_a_d)
 # image domain
 plot_error(folder_a_d, all_errors, all_errors_d, frequency=False)
 # frequency domain
-plot_error(folder_a_d, all_errors_f, all_errors_f_d, frequency=True)
+plot_error(folder_a_d, all_errors_f, all_errors_d_f, frequency=True)
 
 """
 a. reconstruction given true images

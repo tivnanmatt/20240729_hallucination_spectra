@@ -141,6 +141,40 @@ def display(num, filename, true_normalized, perturbed_true):
 
     return 0
 
+def display_perturbation(filename, image_sets, image_sets_d):
+    true_images, measurements, reconstructions = image_sets
+    true_images_d, measurements_d, reconstructions_d = image_sets_d
+    true_display = rescale_abdomen_window(standard_to_hu(true_images.detach().cpu()))
+    perturbed_true_display = rescale_abdomen_window(standard_to_hu(true_images_d.detach().cpu()))
+    difference = perturbed_true_display - true_display
+    vmin = 0
+    vmax = 1
+    num = 0
+    fig, ax = plt.subplots(2, 2, figsize=(15, 5))
+    for col in range(2):
+        for row in range(2):
+            im = ax[col, row].imshow(difference[num, 0, 0, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
+            ax[col, row].set_xticks([])
+            ax[col, row].set_yticks([])
+            num += 1
+            ax[col, row].set_title(f"{num}", y=0.95, fontsize=8)
+    # colorbar
+    fig.subplots_adjust(left=0.0,
+                            bottom=0.05, 
+                            right=0.3, 
+                            top=0.9, 
+                            wspace=0.0, 
+                            hspace=0.2)
+    cbar_ax = fig.add_axes([0.31, 0.05, 0.01, 0.8])
+    color_bar = fig.colorbar(im, cax=cbar_ax)
+    color_bar.minorticks_on()
+
+    fig.suptitle("Difference", x=0.15, fontsize=10)
+    plt.savefig(filename, bbox_inches = 'tight', pad_inches = 0.2)
+    print(filename + " saved")
+
+    return 0
+
 # Convert standard units to Hounsfield Units (HU)
 def standard_to_hu(tensor, mu=-572.3447, sigma=487.3876):
     return tensor * sigma + mu

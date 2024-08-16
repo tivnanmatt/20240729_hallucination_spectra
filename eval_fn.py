@@ -80,7 +80,7 @@ def display_difference(folder, image_sets, image_sets_d):
 
     mean, std = get_mean_std()
     difference = true_images_d - true_images
-    difference = difference * std  + mean
+    difference = difference * std + mean
     display_map(difference, "Difference between true images and perturbed true images", 
                 folder + "difference.png", plot_min, plot_max)
     
@@ -195,7 +195,7 @@ def bar_plot_error(title, filename, error_1, std_1, error_2, std_2):
     plt.savefig(filename)
 
     return 0
-
+"""
 def violin_plot_error(error_vectors, error_vectors_f, error_vectors_d, error_vectors_d_f):
     # all of these are vectors (length is the number of patients)
     rmse, bias, std = error_vectors
@@ -204,20 +204,20 @@ def violin_plot_error(error_vectors, error_vectors_f, error_vectors_d, error_vec
     rmse_d_f, bias_d_f, std_d_f = error_vectors_d_f
 
     # tensors to numpy arrays
-    rmse = rmse.numpy()
-    rmse_d = rmse_d.numpy()
-    rmse_f = rmse_f.numpy()
-    rmse_d_f = rmse_d_f.numpy() 
+    rmse = torch.squeeze(rmse).numpy()
+    rmse_d = torch.squeeze(rmse_d).numpy()
+    rmse_f = torch.squeeze(rmse_f).numpy()
+    rmse_d_f = torch.squeeze(rmse_d_f).numpy() 
 
-    bias = bias.numpy()
-    bias_d = bias_d.numpy()
-    bias_f = bias_f.numpy()
-    bias_d_f = bias_d_f.numpy()
+    bias = torch.squeeze(bias).numpy()
+    bias_d = torch.squeeze(bias_d).numpy()
+    bias_f = torch.squeeze(bias_f).numpy()
+    bias_d_f = torch.squeeze(bias_d_f).numpy()
 
-    std = std.numpy()
-    std_d = std_d.numpy()
-    std_f = std_f.numpy()
-    std_d_f = std_d_f.numpy()
+    std = torch.squeeze(std).numpy()
+    std_d = torch.squeeze(std_d).numpy()
+    std_f = torch.squeeze(std_f).numpy()
+    std_d_f = torch.squeeze(std_d_f).numpy()
 
     # concatenate arrays, put that into df
     # need to check the shape of the error vectors, determine which direction to concatenate
@@ -236,7 +236,7 @@ def violin_plot_error(error_vectors, error_vectors_f, error_vectors_d, error_vec
     ax.set_ylabel('Error')
 
     return 0
-
+"""
     
 # output mean and std of errors
 def record_errors(all_errors, filename, frequency=False, perturbation=False):

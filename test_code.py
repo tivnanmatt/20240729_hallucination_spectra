@@ -26,6 +26,25 @@ from sample_fn import *
 ### test violin plots
 # run a small sample, print these vectors, see their shapes, 
 # see how to concatenate them in the violin plot function
-error_vectors = torch.load = 'samples_a/error_vectors.pt'
+error_vectors = torch.load('test/error_vectors.pt')
+error_vectors_f = torch.load('test/error_vectors_f.pt')
+error_vectors_d = torch.load('test_d/error_vectors_d.pt')
+error_vectors_d_f = torch.load('test_d/error_vectors_d_f.pt')
+
+rmse, bias, std = error_vectors
+print(rmse.size())
+# tensor size [4, 1, 1, 1] -> numpy vector [1, 4] (shape: (4, ), 4 is number of patients)
+rmse = torch.squeeze(rmse).numpy()
+bias = torch.squeeze(bias).numpy()
+std = torch.squeeze(std).numpy()
+
+data = np.stack((rmse, bias, std), axis=0)
+print(rmse)
+print(bias)
+print(std)
+print(data)
+
+# print("rmse vector\n", rmse)
+# print("rmse vector shape\n", rmse.shape)
 
 # violin_plot_error(error_vectors, error_vectors_f, error_vectors_d, error_vectors_d_f)
