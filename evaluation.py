@@ -19,30 +19,43 @@ nums_a = 16, 16, 16, 512, 32
 record_a = 'record_error_a.txt'
 # without perturbation
 image_sets_a = sample_fn(nums_a, noise_hu, contrast, perturbation=False)
+# save image sets, can be used for creating animation later
+torch.save(image_sets_a, folder_a + 'image_sets_a.pt')
 meas_var_a = check_measurement_var(nums_a, image_sets_a)
 display_image_sets(folder_a, image_sets_a)
-create_animation(folder_a, "animation_a.mp4", nums_a, image_sets_a)
+# create_animation(folder_a, "animation_a.mp4", nums_a, image_sets_a)
 
 rmse, bias, std = error_maps(folder_a, nums_a, image_sets_a)
-all_errors = calculate_error(rmse, bias, std, frequency=False)
+all_errors, error_vectors = calculate_error(rmse, bias, std, frequency=False)
 record_errors(all_errors, record_a, frequency=False, perturbation=False)
+torch.save(error_vectors, folder_a + 'error_vectors.pt')
+torch.save(all_errors, folder_a + 'all_errors.pt')
+
 rmse_f, bias_f, std_f = error_freq(folder_a, nums_a, image_sets_a)
-all_errors_f = calculate_error(rmse_f, bias_f, std_f, frequency=True)
+all_errors_f, error_vectors_f = calculate_error(rmse_f, bias_f, std_f, frequency=True)
 record_errors(all_errors_f, record_a, frequency=True, perturbation=False)
+torch.save(error_vectors_f, folder_a + 'error_vectors_f.pt')
+torch.save(all_errors_f, folder_a + 'all_errors_f.pt')
 
 folder_a_d = "samples_a_d/"
 # with perturbation
 image_sets_a_d = sample_fn(nums_a, noise_hu, contrast, perturbation=True)
+torch.save(image_sets_a, folder_a_d + 'image_sets_a_d.pt')
 meas_var_a_d = check_measurement_var(nums_a, image_sets_a_d)
 display_image_sets(folder_a_d, image_sets_a_d)
-create_animation(folder_a_d, "animation_a_d.mp4", nums_a, image_sets_a_d)
+# create_animation(folder_a_d, "animation_a_d.mp4", nums_a, image_sets_a_d)
 
 rmse_d, bias_d, std_d = error_maps(folder_a_d, nums_a, image_sets_a_d)
-all_errors_d = calculate_error(rmse_d, bias_d, std_d, frequency=False)
+all_errors_d, error_vectors_d = calculate_error(rmse_d, bias_d, std_d, frequency=False)
 record_errors(all_errors_d, record_a, frequency=False, perturbation=True)
+torch.save(error_vectors_d, folder_a + 'error_vectors_d.pt')
+torch.save(all_errors_d, folder_a_d + 'all_errors_d.pt')
+
 rmse_f_d, bias_f_d, std_f_d = error_freq(folder_a_d, nums_a, image_sets_a_d)
-all_errors_f_d = calculate_error(rmse_f_d, bias_f_d, std_f_d, frequency=True)
+all_errors_f_d, error_vectors_f_d = calculate_error(rmse_f_d, bias_f_d, std_f_d, frequency=True)
 record_errors(all_errors_f_d, record_a, frequency=True, perturbation=True)
+torch.save(error_vectors_f_d, folder_a + 'error_vectors_f_d.pt')
+torch.save(all_errors_f_d, folder_a + 'all_errors_f_d.pt')
 
 # plot for comparison
 display_difference(folder_a_d, image_sets_a, image_sets_a_d)

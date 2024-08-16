@@ -145,21 +145,24 @@ def error_avg(error_maps):
     # average across patients
     error, std = avg_across_patients(errors)
 
-    return error, std
+    return errors, error, std
 
 def calculate_error(rmse, bias, std, frequency):
     if frequency:
         print("Frequency domain: ")
-    rmse_avg, rmse_std= error_avg(rmse)
+    rmse_vector, rmse_avg, rmse_std= error_avg(rmse)
     print(f"RMSE {round(rmse_avg[0].item(), 2)}" + u"\u00B1" f"{round(rmse_std[0].item(), 2)}")
-    bias_avg, bias_std= error_avg(bias)
+    bias_vector, bias_avg, bias_std= error_avg(bias)
     print(f"BIAS {round(bias_avg[0].item(), 2)}" + u"\u00B1" f"{round(bias_std[0].item(), 2)}")
-    std_avg, std_std= error_avg(std)
+    std_vector, std_avg, std_std= error_avg(std)
     print(f"STD {round(std_avg[0].item(), 2)}" + u"\u00B1" f"{round(std_std[0].item(), 2)}")
 
+    # the mean and std across all patients, single values only 
     all_errors = rmse_avg, rmse_std, bias_avg, bias_std, std_avg, std_std
+    # length is the number of patients, one value for each patient in the vector
+    error_vectors = rmse_vector, bias_vector, std_vector
 
-    return all_errors
+    return all_errors, error_vectors
 
 def plot_error(folder, all_errors, all_errors_digit, frequency=False):
     rmse_avg, rmse_std, bias_avg, bias_std, std_avg, std_std = all_errors
@@ -192,12 +195,13 @@ def bar_plot_error(title, filename, error_1, std_1, error_2, std_2):
     plt.savefig(filename)
 
     return 0
-"""
-def violin_plot_error(error_vector, error_vector_f, error_vector_d, error_vector_d_f):
-    rmse, bias, std = error_vector
-    rmse_f, bias_f, std_f = error_vector_f
-    rmse_d, bias_d, std_d = error_vector_d
-    rmse_d_f, bias_d_f, std_d_f = error_vector_d_f
+
+def violin_plot_error(error_vectors, error_vectors_f, error_vectors_d, error_vectors_d_f):
+    # all of these are vectors (length is the number of patients)
+    rmse, bias, std = error_vectors
+    rmse_f, bias_f, std_f = error_vectors_f
+    rmse_d, bias_d, std_d = error_vectors_d
+    rmse_d_f, bias_d_f, std_d_f = error_vectors_d_f
 
     # tensors to numpy arrays
     rmse = rmse.numpy()
@@ -231,9 +235,8 @@ def violin_plot_error(error_vector, error_vector_f, error_vector_d, error_vector
     ax.set_xlabel('error type')
     ax.set_ylabel('Error')
 
-
     return 0
-"""
+
     
 # output mean and std of errors
 def record_errors(all_errors, filename, frequency=False, perturbation=False):
