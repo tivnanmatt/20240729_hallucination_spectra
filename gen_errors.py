@@ -7,12 +7,12 @@ save the error vectors and error means/std's
 from eval_fn import *
 from sample_fn import *
 
-folder_a = "test/"
-folder_a_d = "test_d/"
-record_a = 'record_test.txt'
-nums_a = 4, 4, 4, 512, 4
-image_sets_a = torch.load("test/image_sets_a.pt")
-image_sets_a_d = torch.load("test_d/image_sets_a_d.pt")
+folder_a = "samples_a/"
+# folder_a_d = "samples_a_d/"
+record_a = 'record_a.txt'
+nums_a = 16, 16, 16, 512, 32
+image_sets_a = torch.load("samples_a/image_sets_a.pt")
+# image_sets_a_d = torch.load("samples_a_d/image_sets_a_d.pt")
 
 rmse, bias, std = error_maps(folder_a, nums_a, image_sets_a)
 all_errors, error_vectors = calculate_error(rmse, bias, std, frequency=False)
@@ -26,15 +26,15 @@ record_errors(all_errors_f, record_a, frequency=True, perturbation=False)
 torch.save(error_vectors_f, folder_a + 'error_vectors_f.pt')
 torch.save(all_errors_f, folder_a + 'all_errors_f.pt')
 
+# # with digits
+# rmse_d, bias_d, std_d = error_maps(folder_a_d, nums_a, image_sets_a_d)
+# all_errors_d, error_vectors_d = calculate_error(rmse_d, bias_d, std_d, frequency=False)
+# record_errors(all_errors_d, record_a, frequency=False, perturbation=True)
+# torch.save(error_vectors_d, folder_a_d + 'error_vectors_d.pt')
+# torch.save(all_errors_d, folder_a_d + 'all_errors_d.pt')
 
-rmse_d, bias_d, std_d = error_maps(folder_a_d, nums_a, image_sets_a_d)
-all_errors_d, error_vectors_d = calculate_error(rmse_d, bias_d, std_d, frequency=False)
-record_errors(all_errors_d, record_a, frequency=False, perturbation=True)
-torch.save(error_vectors_d, folder_a_d + 'error_vectors_d.pt')
-torch.save(all_errors_d, folder_a_d + 'all_errors_d.pt')
-
-rmse_f_d, bias_f_d, std_f_d = error_freq(folder_a_d, nums_a, image_sets_a_d)
-all_errors_f_d, error_vectors_f_d = calculate_error(rmse_f_d, bias_f_d, std_f_d, frequency=True)
-record_errors(all_errors_f_d, record_a, frequency=True, perturbation=True)
-torch.save(error_vectors_f_d, folder_a_d + 'error_vectors_d_f.pt')
-torch.save(all_errors_f_d, folder_a_d + 'all_errors_d_f.pt')
+# rmse_f_d, bias_f_d, std_f_d = error_freq(folder_a_d, nums_a, image_sets_a_d)
+# all_errors_f_d, error_vectors_f_d = calculate_error(rmse_f_d, bias_f_d, std_f_d, frequency=True)
+# record_errors(all_errors_f_d, record_a, frequency=True, perturbation=True)
+# torch.save(error_vectors_f_d, folder_a_d + 'error_vectors_d_f.pt')
+# torch.save(all_errors_f_d, folder_a_d + 'all_errors_d_f.pt')

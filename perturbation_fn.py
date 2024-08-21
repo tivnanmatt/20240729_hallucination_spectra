@@ -76,11 +76,13 @@ def add_digits(true_image, digits, iImage, contrast):
         region = true_image[0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)] 
         inside = inside_tissue(region, threshold)
 
+    # save the iRow and iCol
+    pos = (iRow, iCol)
     # insert one digit at the pair of row and column
     digit = digits[iImage]
     true_image[0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)] += contrast_normalized * digit[0, :, :]
 
-    return true_image
+    return true_image, pos
 
 # check if the region is inside tissue
 def inside_tissue(region, threshold):

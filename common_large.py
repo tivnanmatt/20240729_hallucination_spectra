@@ -15,7 +15,7 @@ def get_diffusion_bridge_model(measurement_noise_variance=0.001695, train=True, 
 
     # load data
     image_dataset = lab.torch.datasets.TCGA(
-                            root="TCGA_LIHC",
+                            root="/mnt/CAMCA/home/alice",
                             train=train,
                             num_files=num_files,
                             verbose=True).to(device)
