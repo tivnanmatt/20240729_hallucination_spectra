@@ -27,7 +27,7 @@ def sample_fn(nums, noise_hu, contrast, perturbation=False):
     diffusion_bridge_model = get_diffusion_bridge_model(measurement_noise_variance=measurement_noise_variance, train=False, num_files=1)
 
     # Load pre-trained weights if available
-    weights_filename = 'weights/diffusion_backbone_weights_20HU.pth'
+    weights_filename = 'weights/diffusion_backbone_weights_100HU.pth'
 
     # If weights are available, load them
     if os.path.exists(weights_filename):
@@ -49,6 +49,7 @@ def sample_fn(nums, noise_hu, contrast, perturbation=False):
 
     if perturbation:
         perturbed_true = torch.zeros((num_images, 1, 1, *image_shape), dtype=true_image.dtype, device=true_image.device)
+        rois = torch.zeros((num_images), dtype=torch.int32, device=true_image.device)
 
     true_images = torch.zeros((num_images, 1, 1, *image_shape), dtype=true_image.dtype, device=true_image.device)
     measurements = torch.zeros((num_images, num_measurements_per_image, 1, *measurement_shape), dtype=measurements.dtype, device=measurements.device)
@@ -62,7 +63,8 @@ def sample_fn(nums, noise_hu, contrast, perturbation=False):
             true_images[iImage, 0, 0] = diffusion_bridge_model.image_dataset.images[iImage]
              # insert digits
             if perturbation:
-                perturbed_true[iImage, 0, 0] = add_digits(true_images[iImage, 0, 0], digits, iImage, contrast)
+                perturbed_true[iImage, 0, 0], pos = add_digits(true_images[iImage, 0, 0], digits, iImage, contrast)
+                rois[iImage] = pos
                 true_images[iImage, 0, 0] = perturbed_true[iImage, 0, 0]
             
             for iMeasurement in range(num_measurements_per_image):
@@ -74,8 +76,10 @@ def sample_fn(nums, noise_hu, contrast, perturbation=False):
                     print(f'Image {iImage+1}/{num_images}, Measurement {iMeasurement+1}/{num_measurements_per_image}, Reconstruction {iReconstruction+1}/{num_reconstructions_per_measurement}')
     
     image_sets = true_images, measurements, reconstructions
-
-    return image_sets
+    if perturbation:
+        return image_sets, rois
+    else:
+        return image_sets
 
 
 """

@@ -117,36 +117,37 @@ def calculate_roi_variance(mean, nums, image_sets, rois, freq=False):
     else:
         return variance
     
+    
 # new calculate error, new error maps
 # copy from map_fn_new.py and modify from there
-def error_maps(folder, nums, image_sets, rois):
+def error_maps_roi(folder, nums, image_sets, rois):
     # mean over reconstructions
-    mean = calculate_roi_mean(nums, image_sets, rois)
+    mean_roi = calculate_roi_mean(nums, image_sets, rois)
     
     # RMSE
-    rmse = calculate_roi_mse(nums, image_sets, rois, freq=False)
-    display_map(rmse, "RMSE maps", folder + "rmse.png", 0, 40)
+    rmse_roi = calculate_roi_mse(nums, image_sets, rois, freq=False)
+    display_map(rmse_roi, "RMSE maps in perturbed regions", folder + "rmse_roi.png", 0, 40)
 
     # Bias
-    bias = calculate_bias(mean, nums, image_sets, freq=False)
-    display_map(bias, "Bias maps", folder + "bias.png", 0, 40)
+    bias_roi = calculate_roi_bias(mean, nums, image_sets, freq=False)
+    display_map(bias_roi, "Bias maps in perturbed regions", folder + "bias_roi.png", 0, 40)
 
     # STD
-    std = calculate_variance(mean, nums, image_sets, freq=False)
-    display_map(std, "STD maps", folder + "std.png", 0, 40)
+    std_roi = calculate_roi_variance(mean, nums, image_sets, freq=False)
+    display_map(std_roi, "STD maps in perturbed regions", folder + "std_roi.png", 0, 40)
 
     # average across pixels and patients
 
     
     # filtered
-    recon_filtered_all = filter_recon(image_sets)
-    bandpass(folder, nums, image_sets, recon_filtered_all)
-    lowpass(folder, nums, image_sets, recon_filtered_all)
+    # recon_filtered_all = filter_recon(image_sets)
+    # bandpass(folder, nums, image_sets, recon_filtered_all)
+    # lowpass(folder, nums, image_sets, recon_filtered_all)
 
-    return rmse, bias, std
+    return rmse_roi, bias_roi, std_roi
 
 
-def error_freq(folder, nums, image_sets, rois):
+def error_freq_roi(folder, nums, image_sets, rois):
     # unpack parameters
     true_images, measurements, reconstructions = image_sets
 
@@ -155,21 +156,21 @@ def error_freq(folder, nums, image_sets, rois):
     recon_freq = torch.fft.fft2(reconstructions)
     image_sets = true_freq, measurements, recon_freq
 
-    mean = calculate_roi_mean(nums, image_sets, rois)
+    mean_roi = calculate_roi_mean(nums, image_sets, rois)
 
     # MSE
-    rmse = calculate_roi_mse(nums, image_sets, rois, freq=True)
-    display_map(rmse, "RMSE maps (frequency)", folder + "rmse_freq.png", 4, 10)
+    rmse_roi = calculate_roi_mse(nums, image_sets, rois, freq=True)
+    display_map(rmse_roi, "RMSE maps in perturbed regions (frequency)", folder + "rmse_roi_freq.png", 4, 10)
 
     # Bias-squared
-    bias = calculate_bias(mean, nums, image_sets, freq=True)
-    display_map(bias, "Bias maps (frequency)", folder + "bias_freq.png", 4, 10)
+    bias_roi = calculate_roi_bias(mean_roi, nums, image_sets, freq=True)
+    display_map(bias_roi, "Bias maps in perturbed regions (frequency)", folder + "bias_roi_freq.png", 4, 10)
 
     # Variance
-    std = calculate_variance(mean, nums, image_sets, freq=True)
-    display_map(std, "STD maps (frequency)", folder + "std_freq.png", 4, 10)
+    std_roi = calculate_roi_variance(mean_roi, nums, image_sets, freq=True)
+    display_map(std_roi, "STD maps in perturbed regions (frequency)", folder + "std_roi_freq.png", 4, 10)
    
-    return rmse, bias, std
+    return rmse_roi, bias_roi, std_roi
 
 def error_avg(error_maps):
     # average across pixels
@@ -236,3 +237,36 @@ def avg_across_patients(errors):
     error = torch.mean(errors, dim=0)
     std = torch.std(errors, dim=0)
     return error, std
+
+
+def plot_error_roi(folder, all_errors, all_errors_digit, frequency=False):
+    rmse_avg, rmse_std, bias_avg, bias_std, std_avg, std_std = all_errors
+    rmse_avg_d, rmse_std_d, bias_avg_d, bias_std_d, std_avg_d, std_std_d = all_errors_digit
+    if frequency:
+        bar_plot_error_roi("RMSE (frequency) in perturbed region", folder + "rmse_bar_f_roi.png", rmse_avg, rmse_std, rmse_avg_d, rmse_std_d)
+        bar_plot_error_roi("Bias (frequency) in perturbed region", folder + "bias_bar_f_roi.png", bias_avg, bias_std, bias_avg_d, bias_std_d)
+        bar_plot_error_roi("STD (frequency) in perturbed region", folder + "std_bar_f_roi.png", std_avg, std_std, std_avg_d, std_std_d)
+
+    else:
+        bar_plot_error_roi("RMSE in perturbed region", folder + "rmse_bar_roi.png", rmse_avg, rmse_std, rmse_avg_d, rmse_std_d)
+        bar_plot_error_roi("Bias in perturbed region", folder + "bias_bar_roi.png", bias_avg, bias_std, bias_avg_d, bias_std_d)
+        bar_plot_error_roi("STD in perturbed region", folder + "std_bar_roi.png", std_avg, std_std, std_avg_d, std_std_d)
+
+    return 0
+
+def bar_plot_error_roi(title, filename, error_1, std_1, error_2, std_2):
+    groups = ["True Images", "True Images with Digits"]
+    error = [error_1[0].item(), error_2[0].item()]
+    std = [std_1[0].item(), std_2[0].item()]
+
+    colors = ["darkgray", "dimgray"]
+
+    fig, ax = plt.subplots(figsize=(4, 5))
+    im = ax.bar(groups, error, yerr=std, color=colors)
+    ax.bar_label(im, labels = [f"{round(error[0], 2)}" + u"\u00B1" f"{round(std[0], 2)}", 
+                               f"{round(error[1], 2)}" + u"\u00B1" f"{round(std[1], 2)}"])
+    ax.set_title(title, weight="bold")
+    plt.show()
+    plt.savefig(filename)
+
+    return 0
