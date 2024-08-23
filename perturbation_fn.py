@@ -66,6 +66,7 @@ def add_digits(true_image, digits, iImage, contrast):
     contrast_normalized = normalization(contrast)
     threshold = normalization(-300)
     inside = False
+    perturbed_image = true_image.detach().clone()
 
     # check if the random spot is inside patient tissue
     while(not inside):
@@ -73,16 +74,16 @@ def add_digits(true_image, digits, iImage, contrast):
         iRow = random.randrange(num_pixels - digit_pixels)
         iCol = random.randrange(num_pixels - digit_pixels)
         # check inside the tissue
-        region = true_image[0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)] 
+        region = perturbed_image[0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)] 
         inside = inside_tissue(region, threshold)
 
     # save the iRow and iCol
     pos = (iRow, iCol)
     # insert one digit at the pair of row and column
     digit = digits[iImage]
-    true_image[0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)] += contrast_normalized * digit[0, :, :]
-
-    return true_image, pos
+    perturbed_image[0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)] = perturbed_image[0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)] + contrast_normalized * digit[0, :, :]
+ 
+    return perturbed_image, pos
 
 # check if the region is inside tissue
 def inside_tissue(region, threshold):
@@ -125,7 +126,9 @@ def display(num, filename, true_normalized, perturbed_true):
     vmax = 1
     true_display = rescale_abdomen_window(standard_to_hu(true_normalized))
     perturbed_true_display = rescale_abdomen_window(standard_to_hu(perturbed_true))
-    difference = perturbed_true_display - true_display
+    # difference = perturbed_true_display - true_display
+    difference = perturbed_true - true_normalized
+    difference_display = rescale_abdomen_window(standard_to_hu(difference))
 
     # plot the original true image, perturbed true image, and the difference between them
     fig, ax = plt.subplots(1, 3, figsize=(15, 5))
@@ -133,8 +136,22 @@ def display(num, filename, true_normalized, perturbed_true):
     ax[0].set_title("True Image")
     im2 = ax[1].imshow(perturbed_true_display[num, 0, 0, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
     ax[1].set_title("True Image with a Digit")
-    im3 = ax[2].imshow(difference[num, 0, 0, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
+    im3 = ax[2].imshow(difference_display[num, 0, 0, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
     ax[2].set_title("Difference")
+    
+    # im1 = ax[0].imshow(true_display[0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
+    # ax[0].set_title("True Image")
+    # im2 = ax[1].imshow(perturbed_true_display[0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
+    # ax[1].set_title("True Image with a Digit")
+    # im3 = ax[2].imshow(difference[0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
+    # ax[2].set_title("Difference")
+
+    # im1 = ax[0].imshow(true_normalized[0, :, :].detach().cpu(), cmap='gray')
+    # ax[0].set_title("True Image")
+    # im2 = ax[1].imshow(perturbed_true[0, :, :].detach().cpu(), cmap='gray')
+    # ax[1].set_title("True Image with a Digit")
+    # im3 = ax[2].imshow(difference[0, :, :].detach().cpu(), cmap='gray')
+    # ax[2].set_title("Difference")
 
     for a in ax:
         a.set_xticks([])

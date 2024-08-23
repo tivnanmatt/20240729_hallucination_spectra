@@ -49,7 +49,7 @@ def sample_fn(nums, noise_hu, contrast, perturbation=False):
 
     if perturbation:
         perturbed_true = torch.zeros((num_images, 1, 1, *image_shape), dtype=true_image.dtype, device=true_image.device)
-        rois = torch.zeros((num_images), dtype=torch.int32, device=true_image.device)
+        rois = np.empty(num_images, dtype=object)
 
     true_images = torch.zeros((num_images, 1, 1, *image_shape), dtype=true_image.dtype, device=true_image.device)
     measurements = torch.zeros((num_images, num_measurements_per_image, 1, *measurement_shape), dtype=measurements.dtype, device=measurements.device)
