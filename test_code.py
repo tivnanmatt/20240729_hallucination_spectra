@@ -8,15 +8,15 @@ from sample_fn import *
 # bar_plot_error("Test Bar Plot", "test/test_bar", 8.2345, 1.0, 7, 3.0084)
 
 ### test digit insertion inside the sampling function
-nums = 1, 1, 1, 512, 4
-noise_hu = 100
-contrast = 10
-image_sets = sample_fn(nums, noise_hu, contrast, perturbation=False)
-true_normalized, measurement, reconstruction = image_sets
-image_sets_d, rois = sample_fn(nums, noise_hu, contrast, perturbation=True)
-perturbed_true, measurement, reconstruction = image_sets_d
-np.save('rois.npy', rois)
-display(0, "test/digit_insertion", true_normalized, perturbed_true)
+# nums = 1, 1, 1, 512, 4
+# noise_hu = 100
+# contrast = 10
+# image_sets = sample_fn(nums, noise_hu, contrast, perturbation=False)
+# true_normalized, measurement, reconstruction = image_sets
+# image_sets_d, rois = sample_fn(nums, noise_hu, contrast, perturbation=True)
+# perturbed_true, measurement, reconstruction = image_sets_d
+# np.save('rois.npy', rois)
+# display(0, "test/digit_insertion", true_normalized, perturbed_true)
 
 ### test error output
 # all_errors = [12], [0.2], [10], [0.3456], [8], [0.191]
@@ -49,3 +49,5 @@ display(0, "test/digit_insertion", true_normalized, perturbed_true)
 # print("rmse vector shape\n", rmse.shape)
 
 # violin_plot_error(error_vectors, error_vectors_f, error_vectors_d, error_vectors_d_f)
+
+### test filter for liver identification

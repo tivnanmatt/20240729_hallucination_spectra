@@ -6,8 +6,8 @@ from eval_fn import *
 from sample_fn import *
 from perturbation_fn import *
 
-folder_a = "test/"
-folder_a_d = "test_d/"
+folder_a = "samples_a/"
+folder_a_d = "samples_a_d/"
 
 image_sets_a = torch.load(folder_a + "image_sets_a.pt")
 image_sets_a_d = torch.load(folder_a_d + "image_sets_a_d.pt")
@@ -20,7 +20,7 @@ all_errors_d_f = torch.load(folder_a_d + "all_errors_d_f.pt")
 error_vectors = torch.load(folder_a + 'error_vectors.pt')
 error_vectors_f = torch.load(folder_a + 'error_vectors_f.pt')
 error_vectors_d = torch.load(folder_a_d + 'error_vectors_d.pt')
-error_vectors_d_f = torch.load(folder_a_d + 'all_errors_d_f.pt')
+error_vectors_d_f = torch.load(folder_a_d + 'error_vectors_d_f.pt')
 
 # plot for comparison
 display_perturbation(folder_a_d + "difference.png", image_sets_a, image_sets_a_d)

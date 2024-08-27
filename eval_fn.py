@@ -106,9 +106,9 @@ def error_maps(folder, nums, image_sets):
 
     
     # filtered
-    recon_filtered_all = filter_recon(image_sets)
-    bandpass(folder, nums, image_sets, recon_filtered_all)
-    lowpass(folder, nums, image_sets, recon_filtered_all)
+    # recon_filtered_all = filter_recon(image_sets)
+    # bandpass(folder, nums, image_sets, recon_filtered_all)
+    # lowpass(folder, nums, image_sets, recon_filtered_all)
 
     return rmse, bias, std
 
