@@ -30,7 +30,7 @@ def sample_digits():
    digits = torch.cat(digit_list)
   
    # Convert to GPU
-   # digits = digits.float().to(device)
+   digits = digits.float().to(device)
 
 
 
@@ -116,23 +116,18 @@ def inside_tissue(region, threshold):
    else:
        return False
   
+# check if the region is inside the liver
 def inside_liver(region, threshold):
-   region_blurred = gaussian_filter(region, sigma=5)
-   avg = np.abs(np.mean(region_blurred - region))
-   if avg < 1e-4:
-       print(avg)
+   region_arr= region.cpu().numpy()
+   region_blurred = gaussian_filter(region_arr, sigma=3)
+   avg = torch.mean(region)
+   diff = np.abs(np.mean(region_blurred - region_arr))
+   if diff < 1e-4 and avg >= threshold:
+       print(diff)
        return True
    else:
        return False
   
-# def inside_liver(region, threshold):
-#     region = gaussian_filter(region, sigma=5)
-#     avg = np.mean(region)
-#     if avg >= threshold:
-#         print(avg)
-#         return True
-#     else:
-#         return False
   
 # load data, modified from the code in laboratory
 def load_data(root, train_num_files, test_num_files, train):

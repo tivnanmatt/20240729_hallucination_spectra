@@ -28,7 +28,8 @@ def calculate_mean(nums, image_sets):
     for n in range(num_images):
         for m in range(num_measurements):
             for r in range(num_reconstructions):
-                mean[n, :, :, :, :, :] += reconstructions[n, m, r, :, :, :].detach().cpu()
+                # mean[n, :, :, :, :, :] += reconstructions[n, m, r, :, :, :].detach().cpu()
+                mean[n, 0, 0, :, :, :] += reconstructions[n, m, r, :, :, :].detach().cpu()
         # mean of this sample image
         mean[n, :, :, :, :, :] /= (num_measurements * num_reconstructions)
 

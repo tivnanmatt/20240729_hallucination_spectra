@@ -16,6 +16,8 @@ std = loader.sigma
 print("loader std:", std)
 
 digit_pixels = 28
+plot_min = -160
+plot_max = 240
 
 def get_mean_std():
     return mean, std
@@ -32,7 +34,7 @@ def calculate_roi_mean(nums, image_sets, rois):
         for m in range(num_measurements):
             for r in range(num_reconstructions):
                 # change the pixels
-                mean[n, :, :, :, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)] += reconstructions[n, m, r, :, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)].detach().cpu()
+                mean[n, :, :, :, :, :] += reconstructions[n, m, r, :, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)].detach().cpu()
         # mean of this sample image
         mean[n, :, :, :, :, :] /= (num_measurements * num_reconstructions)
 
@@ -121,6 +123,7 @@ def calculate_roi_variance(mean, nums, image_sets, rois, freq=False):
 # new calculate error, new error maps
 # copy from map_fn_new.py and modify from there
 def error_maps_roi(folder, nums, image_sets, rois):
+    import filter_fn as fil
     # mean over reconstructions
     mean_roi = calculate_roi_mean(nums, image_sets, rois)
     
@@ -129,20 +132,22 @@ def error_maps_roi(folder, nums, image_sets, rois):
     display_map(rmse_roi, "RMSE maps in perturbed regions", folder + "rmse_roi.png", 0, 40)
 
     # Bias
-    bias_roi = calculate_roi_bias(mean, nums, image_sets, freq=False)
+    bias_roi = calculate_roi_bias(mean_roi, nums, image_sets, rois, freq=False)
     display_map(bias_roi, "Bias maps in perturbed regions", folder + "bias_roi.png", 0, 40)
 
     # STD
-    std_roi = calculate_roi_variance(mean, nums, image_sets, freq=False)
+    std_roi = calculate_roi_variance(mean_roi, nums, image_sets, rois, freq=False)
     display_map(std_roi, "STD maps in perturbed regions", folder + "std_roi.png", 0, 40)
 
     # average across pixels and patients
 
-    
     # filtered
     # recon_filtered_all = filter_recon(image_sets)
     # bandpass(folder, nums, image_sets, recon_filtered_all)
     # lowpass(folder, nums, image_sets, recon_filtered_all)
+    band_filtered, lowpass_filtered = fil.three_filters(image_sets)
+    fil.bandpass_roi(folder, nums, image_sets, band_filtered, rois)
+    fil.lowpass_roi(folder, nums, image_sets, lowpass_filtered, rois)
 
     return rmse_roi, bias_roi, std_roi
 
@@ -163,11 +168,11 @@ def error_freq_roi(folder, nums, image_sets, rois):
     display_map(rmse_roi, "RMSE maps in perturbed regions (frequency)", folder + "rmse_roi_freq.png", 4, 10)
 
     # Bias-squared
-    bias_roi = calculate_roi_bias(mean_roi, nums, image_sets, freq=True)
+    bias_roi = calculate_roi_bias(mean_roi, nums, image_sets, rois, freq=True)
     display_map(bias_roi, "Bias maps in perturbed regions (frequency)", folder + "bias_roi_freq.png", 4, 10)
 
     # Variance
-    std_roi = calculate_roi_variance(mean_roi, nums, image_sets, freq=True)
+    std_roi = calculate_roi_variance(mean_roi, nums, image_sets, rois, freq=True)
     display_map(std_roi, "STD maps in perturbed regions (frequency)", folder + "std_roi_freq.png", 4, 10)
    
     return rmse_roi, bias_roi, std_roi
@@ -197,6 +202,37 @@ def calculate_error(rmse, bias, std, frequency):
 
     return all_errors, error_vectors
 
+def display_map_roi(error, title, filename, plot_min, plot_max, rois, crop=True):
+    num = 0
+    fig, ax = plt.subplots(4, 4, figsize=(15, 5))
+    for col in range(4):
+        for row in range(4):
+            iRow, iCol = rois[num]
+            if crop:
+                im = ax[col, row].imshow(error[num, 0, 0, 0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)].detach().cpu(), cmap='gray', vmin=plot_min, vmax=plot_max)
+            else:
+                im = ax[col, row].imshow(error[num, 0, 0, 0, :, :].detach().cpu(), cmap='gray', vmin=plot_min, vmax=plot_max)
+            ax[col, row].set_xticks([])
+            ax[col, row].set_yticks([])
+            num += 1
+            ax[col, row].set_title(f"{num}", y=0.95, fontsize=8)
+    # colorbar
+    fig.subplots_adjust(left=0.0,
+                            bottom=0.05, 
+                            right=0.3, 
+                            top=0.9, 
+                            wspace=0.0, 
+                            hspace=0.2)
+    cbar_ax = fig.add_axes([0.31, 0.05, 0.01, 0.8])
+    color_bar = fig.colorbar(im, cax=cbar_ax)
+    color_bar.minorticks_on()
+
+    fig.suptitle(title, x=0.15, fontsize=10)
+    plt.savefig(filename, bbox_inches = 'tight', pad_inches = 0.2)
+    print(filename + " saved")
+
+    return 0
+
 
 # display all error maps and image sets
 # error (the quantity to be plotted) has to be normalized already
@@ -204,7 +240,7 @@ def display_map(error, title, filename, plot_min, plot_max):
     num = 0
     fig, ax = plt.subplots(4, 4, figsize=(15, 5))
     for col in range(4):
-        for row in range():
+        for row in range(4):
             im = ax[col, row].imshow(error[num, 0, 0, 0, :, :].detach().cpu(), cmap='gray', vmin=plot_min, vmax=plot_max)
             ax[col, row].set_xticks([])
             ax[col, row].set_yticks([])
@@ -268,5 +304,23 @@ def bar_plot_error_roi(title, filename, error_1, std_1, error_2, std_2):
     ax.set_title(title, weight="bold")
     plt.show()
     plt.savefig(filename)
+
+    return 0
+
+
+def display_rois(folder, image_sets, rois):
+    plot_min = -160
+    plot_max = 240
+    true_images, measurements, reconstructions = image_sets
+
+    # reverse the normalization to HU
+    mean, std = get_mean_std()
+    true_images = true_images * std  + mean
+    measurements = measurements * std + mean
+    reconstructions = reconstructions * std + mean
+
+    display_map_roi(true_images, "True images", folder + "true_roi.png", plot_min, plot_max, rois, crop=True)
+    display_map_roi(measurements, "Measurements", folder + "measurements_roi.png", plot_min, plot_max, rois, crop=True)
+    display_map_roi(reconstructions, "Reconstructions", folder + "reconstructions_roi.png", plot_min, plot_max, rois, crop=True)
 
     return 0

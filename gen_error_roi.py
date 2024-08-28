@@ -6,14 +6,17 @@ For both original true images and perturbed true image reconstructions
 from eval_fn import *
 from sample_fn import *
 from map_fn_roi import *
+from filter_fn import *
 
 folder_a = "samples_a/"
 folder_a_d = "samples_a_d/"
 record_a = 'record_a_roi.txt'
-nums_a = 16, 16, 16, 512, 32
+nums_a = 16, 1, 16, 512, 32
 image_sets_a = torch.load("samples_a/image_sets_a.pt")
 image_sets_a_d = torch.load("samples_a_d/image_sets_a_d.pt")
 rois = torch.load("samples_a_d/rois.pt")
+
+display_rois(folder_a, image_sets_a, rois)
 
 rmse, bias, std = error_maps_roi(folder_a, nums_a, image_sets_a, rois)
 all_errors, error_vectors = calculate_error(rmse, bias, std, frequency=False)
@@ -26,6 +29,8 @@ all_errors_f, error_vectors_f = calculate_error(rmse_f, bias_f, std_f, frequency
 record_errors(all_errors_f, record_a, frequency=True, perturbation=False)
 torch.save(error_vectors_f, folder_a + 'error_vectors_f_roi.pt')
 torch.save(all_errors_f, folder_a + 'all_errors_f_roi.pt')
+
+display_rois(folder_a_d, image_sets_a_d, rois)
 
 # with digits
 rmse_d, bias_d, std_d = error_maps_roi(folder_a_d, nums_a, image_sets_a_d, rois)

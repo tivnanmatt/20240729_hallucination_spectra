@@ -74,6 +74,7 @@ def display_image_sets(folder, image_sets):
 
     return 0
 
+
 def display_difference(folder, image_sets, image_sets_d):
     true_images, measurements, reconstructions = image_sets
     true_images_d, measurements_d, reconstructions_d = image_sets_d
@@ -109,6 +110,9 @@ def error_maps(folder, nums, image_sets):
     # recon_filtered_all = filter_recon(image_sets)
     # bandpass(folder, nums, image_sets, recon_filtered_all)
     # lowpass(folder, nums, image_sets, recon_filtered_all)
+    band_filtered, lowpass_filtered = three_filters(image_sets)
+    bandpass(folder, nums, image_sets, band_filtered)
+    lowpass(folder, nums, image_sets, lowpass_filtered)
 
     return rmse, bias, std
 
