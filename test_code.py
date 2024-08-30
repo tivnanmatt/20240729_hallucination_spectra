@@ -4,6 +4,26 @@ test code
 from eval_fn import *
 from sample_fn import *
 
+folder_a = "samples_a/"
+folder_a_d = "samples_a_d/"
+record_a = 'record_a.txt'
+nums_a = 16, 1, 16, 512, 32
+image_sets_a = torch.load("samples_a/image_sets_a.pt")
+image_sets_a_d = torch.load("samples_a_d/image_sets_a_d.pt")
+
+rois = torch.load("samples_a_d/rois.pt")
+
+display_recons(folder_a, image_sets_a, rois)
+display_recons(folder_a_d, image_sets_a_d, rois)
+
+
+
+# create_animation(folder_a, "animation_a.mp4", nums_a, image_sets_a)
+# create_animation(folder_a_d, "animation_a_d.mp4", nums_a, image_sets_a_d)
+
+# display_single_image(folder_a, image_sets_a)
+# display_single_image(folder_a_d, image_sets_a_d)
+
 ### test bar_plot_error
 # bar_plot_error("Test Bar Plot", "test/test_bar", 8.2345, 1.0, 7, 3.0084)
 

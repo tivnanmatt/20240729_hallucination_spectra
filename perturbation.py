@@ -23,4 +23,4 @@ perturbed_true, pos = add_digits(true_normalized[50], digits, 50, contrast)
 # display the samples
 num = 50
 filename = 'MNIST_sample/perturbed.png'
-display(num, filename, true_normalized[50], perturbed_true)
+display(num, filename, true_normalized[50], perturbed_true, pos)

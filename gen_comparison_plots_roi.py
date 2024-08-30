@@ -6,6 +6,7 @@ from eval_fn import *
 from sample_fn import *
 from perturbation_fn import *
 from map_fn_roi import *
+from map_fn_new import *
 
 folder_a = "samples_a/"
 folder_a_d = "samples_a_d/"

@@ -2,11 +2,13 @@ import torch
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from common_large import get_diffusion_bridge_model, load_weights
-from map_fn_new import *
-from filter_fn import *
+
 import numpy
 import pandas as pd
 import seaborn as sns
+
+from map_fn_new import *
+from filter_fn import *
 
 plot_min = -160
 plot_max = 240
@@ -63,14 +65,42 @@ def display_image_sets(folder, image_sets):
     true_images, measurements, reconstructions = image_sets
 
     # reverse the normalization to HU
-    mean, std = get_mean_std()
-    true_images = true_images * std  + mean
-    measurements = measurements * std + mean
-    reconstructions = reconstructions * std + mean
+    mu, sig = get_mean_std()
+    true_images = true_images * sig  + mu
+    measurements = measurements * sig + mu
+    reconstructions = reconstructions * sig + mu
 
     display_map(true_images, "True images", folder + "true.png", plot_min, plot_max)
     display_map(measurements, "Measurements", folder + "measurements.png", plot_min, plot_max)
     display_map(reconstructions, "Reconstructions", folder + "reconstructions.png", plot_min, plot_max)
+
+    return 0
+
+def display_recons(folder, image_sets, rois):
+    true_images, measurements, reconstructions = image_sets
+
+    # reverse the normalization to HU
+    mu, sig = get_mean_std()
+    true_images = true_images * sig  + mu
+    measurements = measurements * sig + mu
+    reconstructions = reconstructions * sig + mu
+
+    display_recon(reconstructions, "Reconstructions of one measurement", folder + "reconstructions_16.png", plot_min, plot_max, rois)
+
+    return 0
+
+def display_single_image(folder, image_sets):
+    true_images, measurements, reconstructions = image_sets
+
+    # reverse the normalization to HU
+    mu, sig = get_mean_std()
+    true_images = true_images * sig  + mu
+    measurements = measurements * sig + mu
+    reconstructions = reconstructions * sig + mu
+
+    display_single(true_images, "True images", folder + "true_single.png", plot_min, plot_max)
+    display_single(measurements, "Measurements", folder + "measurements_single.png", plot_min, plot_max)
+    display_single(reconstructions, "Reconstructions", folder + "reconstructions_single.png", plot_min, plot_max)
 
     return 0
 
@@ -79,9 +109,9 @@ def display_difference(folder, image_sets, image_sets_d):
     true_images, measurements, reconstructions = image_sets
     true_images_d, measurements_d, reconstructions_d = image_sets_d
 
-    mean, std = get_mean_std()
+    mu, sig = get_mean_std()
     difference = true_images_d - true_images
-    difference = difference * std + mean
+    difference = difference * sig + mu
     display_map(difference, "Difference between true images and perturbed true images", 
                 folder + "difference.png", plot_min, plot_max)
     
@@ -92,7 +122,7 @@ def error_maps(folder, nums, image_sets):
     mean = calculate_mean(nums, image_sets)
     
     # RMSE
-    rmse = calculate_mse(nums, image_sets, freq=False)
+    rmse = calculate_rmse(nums, image_sets, freq=False)
     display_map(rmse, "RMSE maps", folder + "rmse.png", 0, 40)
 
     # Bias
@@ -100,7 +130,7 @@ def error_maps(folder, nums, image_sets):
     display_map(bias, "Bias maps", folder + "bias.png", 0, 40)
 
     # STD
-    std = calculate_variance(mean, nums, image_sets, freq=False)
+    std = calculate_std(mean, nums, image_sets, freq=False)
     display_map(std, "STD maps", folder + "std.png", 0, 40)
 
     # average across pixels and patients
@@ -110,9 +140,7 @@ def error_maps(folder, nums, image_sets):
     # recon_filtered_all = filter_recon(image_sets)
     # bandpass(folder, nums, image_sets, recon_filtered_all)
     # lowpass(folder, nums, image_sets, recon_filtered_all)
-    band_filtered, lowpass_filtered = three_filters(image_sets)
-    bandpass(folder, nums, image_sets, band_filtered)
-    lowpass(folder, nums, image_sets, lowpass_filtered)
+    
 
     return rmse, bias, std
 
@@ -122,23 +150,28 @@ def error_freq(folder, nums, image_sets):
     true_images, measurements, reconstructions = image_sets
 
     # take 2D FFT for the frequency domain
-    true_freq = torch.fft.fft2(true_images)
-    recon_freq = torch.fft.fft2(reconstructions)
+    # true_freq = torch.fft.fft2(true_images)
+    # recon_freq = torch.fft.fft2(reconstructions)
+    true_freq = torch.fft.fftshift(true_images)
+    recon_freq = torch.fft.fftshift(reconstructions)
     image_sets = true_freq, measurements, recon_freq
 
     mean = calculate_mean(nums, image_sets)
 
+
     # MSE
-    rmse = calculate_mse(nums, image_sets, freq=True)
-    display_map(rmse, "RMSE maps (frequency)", folder + "rmse_freq.png", 4, 10)
+    rmse = calculate_rmse(nums, image_sets, freq=True)
+    plot_min = torch.round(torch.min(rmse))
+    plot_max = torch.round(torch.max(rmse))
+    display_map(rmse, "RMSE maps (frequency)", folder + "rmse_freq.png", plot_min, plot_max)
 
     # Bias-squared
     bias = calculate_bias(mean, nums, image_sets, freq=True)
-    display_map(bias, "Bias maps (frequency)", folder + "bias_freq.png", 4, 10)
+    display_map(bias, "Bias maps (frequency)", folder + "bias_freq.png", plot_min, plot_max)
 
     # Variance
-    std = calculate_variance(mean, nums, image_sets, freq=True)
-    display_map(std, "STD maps (frequency)", folder + "std_freq.png", 4, 10)
+    std = calculate_std(mean, nums, image_sets, freq=True)
+    display_map(std, "STD maps (frequency)", folder + "std_freq.png", plot_min, plot_max)
    
     return rmse, bias, std
 

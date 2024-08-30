@@ -30,7 +30,7 @@ def sample_digits():
    digits = torch.cat(digit_list)
   
    # Convert to GPU
-   digits = digits.float().to(device)
+#    digits = digits.float().to(device)
 
 
 
@@ -161,9 +161,10 @@ def load_data(root, train_num_files, test_num_files, train):
 
 
 # display the differences
-def display(num, filename, true_normalized, perturbed_true):
+def display(num, filename, true_normalized, perturbed_true, pos):
    vmin = 0
    vmax = 1
+   iRow, iCol = pos
    true_display = rescale_abdomen_window(standard_to_hu(true_normalized))
    perturbed_true_display = rescale_abdomen_window(standard_to_hu(perturbed_true))
    # difference = perturbed_true_display - true_display
@@ -180,11 +181,11 @@ def display(num, filename, true_normalized, perturbed_true):
    # im3 = ax[2].imshow(difference_display[num, 0, 0, 0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
    # ax[2].set_title("Difference")
   
-   im1 = ax[0].imshow(true_display[0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
+   im1 = ax[0].imshow(true_display[0, iRow:(iRow+28), iCol:(iCol+28)].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
    ax[0].set_title("True Image")
-   im2 = ax[1].imshow(perturbed_true_display[0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
+   im2 = ax[1].imshow(perturbed_true_display[0, iRow:(iRow+28), iCol:(iCol+28)].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
    ax[1].set_title("True Image with a Digit")
-   im3 = ax[2].imshow(difference[0, :, :].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
+   im3 = ax[2].imshow(difference[0, iRow:(iRow+28), iCol:(iCol+28)].detach().cpu(), cmap='gray', vmin=vmin, vmax=vmax)
    ax[2].set_title("Difference")
 
 
