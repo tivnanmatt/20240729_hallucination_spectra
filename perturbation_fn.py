@@ -21,21 +21,22 @@ def sample_digits():
    mnist = datasets.MNIST(root='./MNIST', train=True, download=True, transform=trans)
    data_loader = torch.utils.data.DataLoader(mnist)
    digit_list = []
+   label_list = []
 
 
    for digit, label in data_loader:
        digit_list.append(digit)
+       label_list.append(label)
   
    # convert from array to tensor
    digits = torch.cat(digit_list)
-  
+   labels = torch.cat(label_list)
+
    # Convert to GPU
-#    digits = digits.float().to(device)
+   digits = digits.float().to(device)
+   labels = labels.float().to(device)
 
-
-
-
-   return digits
+   return digits, labels
 
 
 # convert true images from HU to standard units

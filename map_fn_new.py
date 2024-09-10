@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import laboratory as lab
 
 
-# get 
+# get the mean and std of all images from the data loader
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 loader = lab.torch.datasets.TCGA(
                             root='TCGA_LIHC',
@@ -23,12 +23,16 @@ plot_max = 240
 
 
 def get_mean_std():
+    """
+    Get the average and standard deviation of the input images
+    """
     return mu, sig
 
 
-# Find the mean across reconstructions
 def calculate_mean(nums, image_sets):
-    # mean = torch.mean(reconstructions, 2, keepdim=True)
+    """
+    Find the mean across reconstructions
+    """
     num_images, num_measurements, num_reconstructions, num_pixels, num_timesteps = nums
     true_images, measurements, reconstructions = image_sets
     mean = torch.zeros(num_images, 1, 1, 1, num_pixels, num_pixels, dtype=torch.complex64)
@@ -36,15 +40,17 @@ def calculate_mean(nums, image_sets):
     for n in range(num_images):
         for m in range(num_measurements):
             for r in range(num_reconstructions):
-                # mean[n, :, :, :, :, :] += reconstructions[n, m, r, :, :, :].detach().cpu()
                 mean[n, 0, 0, :, :, :] += reconstructions[n, m, r, :, :, :].detach().cpu()
         # mean of this sample image
         mean[n, :, :, :, :, :] /= (num_measurements * num_reconstructions)
 
     return mean
 
-# RMSE
+
 def calculate_rmse(nums, image_sets, freq=False):
+    """
+    Find the RMSE between the true images and the reconstructions
+    """
     num_images, num_measurements, num_reconstructions, num_pixels, num_timesteps = nums
     true_images, measurements, reconstructions = image_sets
     rmse = torch.zeros(num_images, 1, 1, 1, num_pixels, num_pixels)
@@ -53,7 +59,6 @@ def calculate_rmse(nums, image_sets, freq=False):
         for m in range(num_measurements):
             for r in range(num_reconstructions):
                 # find the difference between each reconstruction and the ground truth
-                # diff_squared, total_diff, mse are all tensors of the same shape as the images
                 diff_squared = (true_images[n, :, :, :, :, :].detach().cpu() - reconstructions[n, m, r, :, :, :].detach().cpu()).abs() ** 2
                 total_diff += diff_squared
 
@@ -71,16 +76,16 @@ def calculate_rmse(nums, image_sets, freq=False):
         return rmse
 
 
-# Bias
 def calculate_bias(mean, nums, image_sets, freq=False):
+    """
+    Find the bias of the sampling by comparing the mean of the reconstructions and the true images
+    """
     num_images, num_measurements, num_reconstructions, num_pixels, num_timesteps = nums
     true_images, measurements, reconstructions = image_sets
     bias = torch.zeros(num_images, 1, 1, 1, num_pixels, num_pixels)
     for m in range(num_images):
-        # bias[m, :, :, :, :, :] = (mean[m, :, :, :, :, :] - true_images[m, :, :, :, :, :].detach().cpu()).abs() ** 2
         bias[m, :, :, :, :, :] = (mean[m, :, :, :, :, :] - true_images[m, :, :, :, :, :].detach().cpu()).abs()
         # reverse normalization
-        # bias[m, :, :, :, :, :] = bias[m, :, :, :, :, :] * (std ** 2)
         bias[m, :, :, :, :, :] = bias[m, :, :, :, :, :] * sig
 
     if freq:
@@ -90,16 +95,16 @@ def calculate_bias(mean, nums, image_sets, freq=False):
         return bias
 
 
-# STD
 def calculate_std(mean, nums, image_sets, freq=False):
+    """
+    Find the STD of the sampling by comparing the reconstructions with their mean
+    """
     num_images, num_measurements, num_reconstructions, num_pixels, num_timesteps = nums
     true_images, measurements, reconstructions = image_sets
     std = torch.zeros(num_images, 1, 1, 1, num_pixels, num_pixels)
     for n in range(num_images):
-        # total_var = torch.zeros(1, 1, 1, 1, num_pixels, num_pixels)
         for m in range(num_measurements):
             for r in range(num_reconstructions):
-                # total_var[:, :, :, :, :, :] += (reconstructions[n, m, r, :, :, :].detach().cpu() - mean[n, :, :, :, :, :]).abs() ** 2
                 std[n, :, :, :, :, :] += (reconstructions[n, m, r, :, :, :].detach().cpu() - mean[n, :, :, :, :, :]).abs() ** 2
         # variance among the reconstructions of this sample image
         if (num_measurements * num_reconstructions - 1) == 0:
@@ -110,7 +115,6 @@ def calculate_std(mean, nums, image_sets, freq=False):
         # use std
         std[n, :, :, :, :, :] = torch.sqrt(std[n, :, :, :, :, :])
         # reverse the normalization 
-        # variance[n, :, :, :, :, :] = variance[n, :, :, :, :, :] * (std ** 2)
         std[n, :, :, :, :, :] = std[n, :, :, :, :, :] * sig
     
     if freq:
@@ -120,15 +124,16 @@ def calculate_std(mean, nums, image_sets, freq=False):
         return std
 
 
-# display all error maps and image sets
-# error (the quantity to be plotted) has to be normalized already
 def display_map(error, title, filename, plot_min, plot_max):
+    """
+    Display all error maps and image sets
+    Error (the quantity to be plotted) has to be normalized already
+    """
     num = 0
     fig, ax = plt.subplots(4, 4, figsize=(15, 5))
     for col in range(4):
         for row in range(4):
-            plot_min = torch.round(torch.min(error[num, 0, 0, 0, :, :]))
-            plot_max = torch.round(torch.max(error[num, 0, 0, 0, :, :]))
+            
             im = ax[col, row].imshow(error[num, 0, 0, 0, :, :].detach().cpu(), cmap='gray', vmin=plot_min, vmax=plot_max)
             ax[col, row].set_xticks([])
             ax[col, row].set_yticks([])
@@ -151,17 +156,18 @@ def display_map(error, title, filename, plot_min, plot_max):
 
     return 0
 
+
 def display_single(error, title, filename, plot_min, plot_max):
+    """
+    Display a single image
+    """
     num = 0
     fig, ax = plt.subplots(1, 1, figsize=(15, 5))
 
-    # plot_min = torch.round(torch.min(error[num, 0, 0, 0, :, :]))
-    # plot_max = torch.round(torch.max(error[num, 0, 0, 0, :, :]))
     im = plt.imshow(error[num, 0, 0, 0, :, :].detach().cpu(), cmap='gray', vmin=plot_min, vmax=plot_max)
     plt.tick_params(left = False, right = False , labelleft = False , 
                 labelbottom = False, bottom = False) 
     num+=1
-    # plt.suptitle(f"{num}", y=0.95, fontsize=8)
     # colorbar
     fig.subplots_adjust(left=0.0,
                             bottom=0.05, 
@@ -181,15 +187,17 @@ def display_single(error, title, filename, plot_min, plot_max):
 
 
 def display_recon(error, title, filename, plot_min, plot_max, rois):
+    """
+    Display four reconstructions from the first measurement of the first patient
+    """
     num = 0
     iRow, iCol = rois[0]
     fig, ax = plt.subplots(2, 2, figsize=(15, 5))
     for col in range(2):
         for row in range(2):
             iRow, iCol = rois[0]
-            # plot_min = torch.round(torch.min(error[0, 0, num, 0, :, :]))
-            # plot_max = torch.round(torch.max(error[0, 0, num, 0, :, :]))
             im = ax[col, row].imshow(error[0, 0, num, 0, :, :].detach().cpu(), cmap='gray', vmin=plot_min, vmax=plot_max)
+            # uncomment the below line to plot the ROIs
             # im = ax[col, row].imshow(error[0, 0, num, 0, iRow:(iRow+digit_pixels), iCol:(iCol+digit_pixels)].detach().cpu(), cmap='gray', vmin=plot_min, vmax=plot_max)
             ax[col, row].set_xticks([])
             ax[col, row].set_yticks([])
@@ -212,13 +220,19 @@ def display_recon(error, title, filename, plot_min, plot_max, rois):
 
     return 0
 
-# average the error maps over pixels (dimensions 4 and 5), get one error for each patient
+
 def avg_across_pixels(error_maps):
+    """
+    Average the error maps over pixels (dimensions 4 and 5), get one error for each patient
+    """
     errors = torch.mean(error_maps, dim=(4,5))
     return errors
 
-# average and std among the patients
+
 def avg_across_patients(errors):
+    """
+    Average and std among the patients
+    """
     error = torch.mean(errors, dim=0)
     std = torch.std(errors, dim=0)
     return error, std

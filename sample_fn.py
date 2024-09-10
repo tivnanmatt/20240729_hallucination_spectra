@@ -50,13 +50,14 @@ def sample_fn(nums, noise_hu, contrast, perturbation=False):
     if perturbation:
         perturbed_true = torch.zeros((num_images, 1, 1, *image_shape), dtype=true_image.dtype, device=true_image.device)
         rois = np.empty(num_images, dtype=object)
+        ground_truth_label = np.empty(num_images)
 
     true_images = torch.zeros((num_images, 1, 1, *image_shape), dtype=true_image.dtype, device=true_image.device)
     measurements = torch.zeros((num_images, num_measurements_per_image, 1, *measurement_shape), dtype=measurements.dtype, device=measurements.device)
     reconstructions = torch.zeros((num_images, num_measurements_per_image, num_reconstructions_per_measurement, *reconstruction_shape), dtype=reconstructions.dtype, device=reconstructions.device)
 
     if perturbation:
-        digits = sample_digits()
+        digits, labels = sample_digits()
 
     with torch.no_grad():                 
         for iImage in range(num_images):
@@ -65,6 +66,7 @@ def sample_fn(nums, noise_hu, contrast, perturbation=False):
             if perturbation:
                 perturbed_true[iImage, 0, 0], pos = add_digits(true_images[iImage, 0, 0], digits, iImage, contrast)
                 rois[iImage] = pos
+                ground_truth_label[iImage] = labels[iImage]
                 true_images[iImage, 0, 0] = perturbed_true[iImage, 0, 0]
             
             for iMeasurement in range(num_measurements_per_image):
@@ -77,7 +79,7 @@ def sample_fn(nums, noise_hu, contrast, perturbation=False):
     
     image_sets = true_images, measurements, reconstructions
     if perturbation:
-        return image_sets, rois
+        return image_sets, rois, ground_truth_label
     else:
         return image_sets
 
