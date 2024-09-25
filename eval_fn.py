@@ -1,5 +1,6 @@
 import torch
 import matplotlib.pyplot as plt
+from scipy import stats
 import matplotlib.animation as animation
 from common_large import get_diffusion_bridge_model, load_weights
 
@@ -152,8 +153,8 @@ def error_freq(folder, nums, image_sets):
     # take 2D FFT for the frequency domain
     # true_freq = torch.fft.fft2(true_images)
     # recon_freq = torch.fft.fft2(reconstructions)
-    true_freq = torch.fft.fftshift(true_images)
-    recon_freq = torch.fft.fftshift(reconstructions)
+    true_freq = torch.fft.fftshift(torch.fft.fft2(true_images))
+    recon_freq = torch.fft.fftshift(torch.fft.fft2(reconstructions))
     image_sets = true_freq, measurements, recon_freq
 
     mean = calculate_mean(nums, image_sets)
@@ -163,6 +164,8 @@ def error_freq(folder, nums, image_sets):
     rmse = calculate_rmse(nums, image_sets, freq=True)
     plot_min = torch.round(torch.min(rmse))
     plot_max = torch.round(torch.max(rmse))
+    # plot_min = 0
+    # plot_max = 40
     display_map(rmse, "RMSE maps (frequency)", folder + "rmse_freq.png", plot_min, plot_max)
 
     # Bias-squared
@@ -199,7 +202,20 @@ def calculate_error(rmse, bias, std, frequency):
     # length is the number of patients, one value for each patient in the vector
     error_vectors = rmse_vector, bias_vector, std_vector
 
+    # do t-test across rmse_vector, bias_vector, and std_vector
+    print("p-value: ")
+    t_test("RMSE", rmse_vector)
+    t_test("Bias", bias_vector)
+    t_test("STD", std_vector)
+
     return all_errors, error_vectors
+
+def t_test(name, error_vector):
+    error_vector = error_vector.numpy()
+    avg = np.mean(error_vector)
+    t_stat, p_value = stats.ttest_1samp(error_vector, avg)
+    print(name + ": ", p_value)
+    return 0
 
 def plot_error(folder, all_errors, all_errors_digit, frequency=False):
     rmse_avg, rmse_std, bias_avg, bias_std, std_avg, std_std = all_errors

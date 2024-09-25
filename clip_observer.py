@@ -70,7 +70,8 @@ class CLIPModelObserver:
         all_predictions = np.vstack(all_predictions)
 
         for j, label in enumerate(self.labels):
-            y_true = ground_truth_labels[:, j]
+            # y_true = ground_truth_labels[:, j]
+            y_true = np.array(ground_truth_labels[:, j])
             y_scores = all_predictions[:, j]
 
             # Compute AUC

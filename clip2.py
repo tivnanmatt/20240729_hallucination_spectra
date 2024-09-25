@@ -13,7 +13,7 @@ def save_img(error, filename, rois, plot_min, plot_max):
     mu = -572.3446
     # normalize
     error = error * sig + mu
-    for i in range(96):
+    for i in range(16):
         iRow, iCol = rois[i]
         img = plt.imshow(error[i, 0, 0, 0, iRow:(iRow+28), iCol:(iCol+28)].detach().cpu(), cmap='gray', vmin=plot_min, vmax=plot_max)
         plt.axis('off')
@@ -24,19 +24,40 @@ def save_img(error, filename, rois, plot_min, plot_max):
     return 0
 
 # Save images from the sampling (gen_image_sets.py)
-image_sets = torch.load("samples_200_clip/image_sets_a_d.pt")
-rois = torch.load("samples_200_clip/rois.pt")
-labels = torch.load("samples_200_clip/ground_truth_label.pt")
+# image_sets = torch.load("samples_200_clip/image_sets_a_d.pt")
+# rois = torch.load("samples_200_clip/rois.pt")
+# labels = torch.load("samples_200_clip/ground_truth_label.pt")
+image_sets = torch.load("samples_a_d_200/image_sets_a_d.pt")
+rois = torch.load("samples_a_d_200/rois.pt")
 true_images, measurements, reconstructions = image_sets
-save_img(reconstructions, "samples_200_clip/perturbed_recon", rois, -160, 240)
-save_img(true_images, "samples_200_clip/true", rois, -160, 240)
+save_img(reconstructions, "recon_200/perturbed_recon", rois, -160, 240)
+save_img(true_images, "recon_200/true", rois, -160, 240)
+# save_img(reconstructions, "samples_200_clip/perturbed_recon", rois, -160, 240)
+# save_img(true_images, "samples_200_clip/true", rois, -160, 240)
 
 observer = CLIPModelObserver(verbose=True, batch_size=16)
 
 # Load the images
-labels = labels[:96]
+# labels = labels[:96]
+# labels = ["5", "0", "4", "1", "9", "2", "1", "3", "1", "4", "3", "5", "3", "6", "1", "7"]
+labels = np.array([[0, 0, 0, 0, 0, 1, 0, 0, 0, 0], 
+          [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+          [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+          [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+          [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+          [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+          [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+          [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+          [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 1, 0, 0]])
 images = []
-for i in range(100):
+for i in range(16):
     image = Image.open(f"recon_200/perturbed_recon_{i+1}.png")
 
     # Preprocess the image

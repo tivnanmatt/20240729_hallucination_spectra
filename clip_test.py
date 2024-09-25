@@ -6,14 +6,13 @@ from PIL import Image
 from transformers import CLIPProcessor, CLIPModel
 import matplotlib.pyplot as plt
 import numpy as np
-from perturbation_fn import *
 
 def save_img(error, filename, rois, plot_min, plot_max):
     sig = 487.3876
     mu = -572.3446
     # normalize
     error = error * sig + mu
-    for i in range(1024):
+    for i in range(16, 32):
         iRow, iCol = rois[i]
         img = plt.imshow(error[i, 0, 0, 0, iRow:(iRow+28), iCol:(iCol+28)].detach().cpu(), cmap='gray', vmin=plot_min, vmax=plot_max)
         plt.axis('off')
@@ -27,33 +26,24 @@ def save_img(error, filename, rois, plot_min, plot_max):
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
-image_sets = torch.load("samples_a_d_200/image_sets_a_d.pt")
-rois = torch.load("samples_a_d_200/rois.pt")
-true_images, measurements, reconstructions = image_sets
-save_img(reconstructions, "recon_200/perturbed_recon", rois, -160, 240)
-save_img(true_images, "recon_200/true", rois, -160, 240)
-# Save images from the sampling (gen_image_sets.py)
-# image_sets = torch.load("samples_200_clip/image_sets_a_d.pt")
-# rois = torch.load("samples_200_clip/rois.pt")
+# image_sets = torch.load("samples_a_d_200/image_sets_a_d.pt")
+# rois = torch.load("samples_a_d_200/rois.pt")
 # true_images, measurements, reconstructions = image_sets
+# save_img(reconstructions, "recon_200/perturbed_recon", rois, -160, 240)
+# save_img(true_images, "recon_200/true", rois, -160, 240)
+# Save images from the sampling (gen_image_sets.py)
+image_sets = torch.load("samples_200_clip/image_sets_a_d.pt")
+rois = torch.load("samples_200_clip/rois.pt")
+true_images, measurements, reconstructions = image_sets
 # labels = torch.load("samples_200_clip/ground_truth_label.pt")
-# save_img(reconstructions, "samples_200_clip/perturbed_recon", rois, -160, 240)
-# save_img(true_images, "samples_200_clip/true", rois, -160, 240)
+save_img(reconstructions, "samples_200_clip/perturbed_recon", rois, -160, 240)
+save_img(true_images, "samples_200_clip/true", rois, -160, 240)
 
 # print("TRUE")
 # for i in range(16):
 # Load the image 
-image = Image.open(f"samples_200_clip/true_31.png")
+image = Image.open(f"samples_200_clip/true_26.png")
 # image = Image.open(f"recon_200/true_17.png")
-
-"""
-digits, labels = sample_digits()
-digit = digits[2, 0, :, :]
-img = plt.imshow(digit.detach().cpu(), cmap='gray', vmin=0, vmax=1)
-plt.axis('off')
-plt.savefig("digit2.png", bbox_inches='tight', pad_inches = 0)
-
-image = Image.open("digit2.png")
 
 # Preprocess the image
 # 1. resize from 28x28 to 224x224
@@ -97,7 +87,7 @@ predicted_diagnosis = digit_options[predicted_idx]
 print(f"\nPredicted Digits: {predicted_diagnosis}")
 
 
-"""
+
 
 
 

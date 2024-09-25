@@ -32,10 +32,10 @@ def filter_recon(image_sets):
 def three_filters(image_sets):
     true_images, measurements, reconstructions = image_sets
     reconstructions = reconstructions.detach().cpu()
-    # FWHM=1mm
-    LPF_1 = gaussian_filter(reconstructions, sigma=0.4246284501)
-    # FWHM=3mm
-    LPF_2 = gaussian_filter(reconstructions, sigma=1.27388535032)
+    # FWHM=1.1mm
+    LPF_1 = gaussian_filter(reconstructions, sigma=0.46709129511)
+    # FWHM=1.5mm
+    LPF_2 = gaussian_filter(reconstructions, sigma=0.63694267515)
 
     BPF_1 = LPF_2
     BPF_2 = LPF_1 - LPF_2
@@ -48,10 +48,10 @@ def three_filters(image_sets):
 
 def filter_maps(folder, nums, image_sets):
     band_filtered, lowpass_filtered = three_filters(image_sets)
-    band_std = bandpass(folder, nums, image_sets, band_filtered)
+    band_rmses, band_biases, band_stds = bandpass(folder, nums, image_sets, band_filtered)
     low_std = lowpass(folder, nums, image_sets, lowpass_filtered)
 
-    return band_std, low_std
+    return band_rmses, band_biases, band_stds, low_std
 
 # def bandpass(folder, nums, image_sets, recon_filtered_all):
 
@@ -59,6 +59,9 @@ def filter_maps(folder, nums, image_sets):
 def bandpass(folder, nums, image_sets, band_filtered):
     print("band pass")
     bands = ["low", "middle", "high"]
+    band_rmses = []
+    band_biases = []
+    band_stds = []
     for u in range(len(band_filtered)):
         
         true_images, measurements, reconstructions = image_sets
@@ -69,6 +72,8 @@ def bandpass(folder, nums, image_sets, band_filtered):
 
         # mean of the filtered reconstruction
         mean = calculate_mean(nums, image_sets)
+        rmse = calculate_rmse(nums, image_sets, freq=False)
+        bias = calculate_bias(mean, nums, image_sets, freq=False)
         std = calculate_std(mean, nums, image_sets, freq=False)
         title = "STD maps (band filtered: " + bands[u] + ")"
         file = "std_" + bands[u] + ".png"
@@ -81,17 +86,26 @@ def bandpass(folder, nums, image_sets, band_filtered):
 
         display_map(std, title, folder + file, plot_min, plot_max)
 
+        rmse_vector, rmse_avg, rmse_std = error_avg(rmse)
+        band_rmse = rmse_vector, rmse_avg, rmse_std
+        band_rmses.append(band_rmse)
+
+        bias_vector, bias_avg, bias_std = error_avg(bias)
+        band_bias = bias_vector, bias_avg, bias_std
+        band_biases.append(band_bias)
+
         # calculate std vectors, final average std, std of std
         std_vector, std_avg, std_std = error_avg(std) 
         band_std = std_vector, std_avg, std_std
+        band_stds.append(band_std)
         # need a list of band_std for the three bands, now only have one band; same for lowpass
-    return band_std
+    return band_rmses, band_biases, band_stds
 
 
 # LOWPASS
 def lowpass(folder, nums, image_sets, lowpass_filtered):
     print("low pass")
-    FWHM = [1, 3]
+    FWHM = [1.1, 1.5]
     for u in range(len(lowpass_filtered)):
 
         true_images, measurements, reconstructions = image_sets
@@ -127,15 +141,25 @@ print(variance[0, 0, 0, :, :, :])
 
 def filter_maps_roi(folder, nums, image_sets, rois):
     band_filtered, lowpass_filtered = three_filters(image_sets)
-    band_std = bandpass_roi(folder, nums, image_sets, band_filtered, rois)
+    rmses, rmse_stds, biases, bias_stds, stds, std_stds = bandpass_roi(folder, nums, image_sets, band_filtered, rois)
     low_std = lowpass_roi(folder, nums, image_sets, lowpass_filtered, rois)
 
-    return band_std, low_std
+    return rmses, rmse_stds, biases, bias_stds, stds, std_stds
 
 # BANDPASS
 def bandpass_roi(folder, nums, image_sets, band_filtered, rois):
     print("band pass")
     bands = ["low", "middle", "high"]
+    band_rmses = []
+    band_biases = []
+    band_stds = []
+
+    rmses = []
+    rmse_stds = []
+    biases = []
+    bias_stds = []
+    stds = []
+    std_stds = []
     for u in range(len(band_filtered)):
         
         true_images, measurements, reconstructions = image_sets
@@ -146,6 +170,8 @@ def bandpass_roi(folder, nums, image_sets, band_filtered, rois):
 
         # mean of the filtered reconstruction
         mean = calculate_roi_mean(nums, image_sets, rois)
+        rmse = calculate_roi_rmse(nums, image_sets, rois, freq=False)
+        bias = calculate_roi_bias(mean, nums, image_sets, rois, freq=False)
         std = calculate_roi_std(mean, nums, image_sets, rois, freq=False)
         title = "STD maps (band filtered: " + bands[u] + ")"
         file = "std_" + bands[u] + "_roi.png"
@@ -153,22 +179,44 @@ def bandpass_roi(folder, nums, image_sets, band_filtered, rois):
         # file = f"std_{round(0.4*(u-1), 1)}-{round(0.4*u, 1)}.png"
 
         # use the max and min pixel values as the color bar limits
-        plot_min = torch.round(torch.min(std))
-        plot_max = torch.round(torch.max(std))
+        # plot_min = torch.round(torch.min(std))
+        # plot_max = torch.round(torch.max(std))
+
+        plot_min = 0
+        plot_max = 40
 
         display_map_roi(std, title, folder + file, plot_min, plot_max, rois, crop=False)
+
+        rmse_vector, rmse_avg, rmse_std = error_avg(rmse)
+        band_rmse = rmse_vector, rmse_avg, rmse_std
+        band_rmses.append(band_rmse)
+
+        rmses.append(rmse_avg)
+        rmse_stds.append(rmse_std)
+
+        bias_vector, bias_avg, bias_std = error_avg(bias)
+        band_bias = bias_vector, bias_avg, bias_std
+        band_biases.append(band_bias)
+
+        biases.append(bias_avg)
+        bias_stds.append(bias_std)
 
         # calculate std vectors, final average std, std of std
         std_vector, std_avg, std_std = error_avg(std) 
         band_std = std_vector, std_avg, std_std
+        band_stds.append(band_std)
 
-    return band_std
+        stds.append(std_avg)
+        std_stds.append(std_std)
+
+    # return band_rmses, band_biases, band_stds
+    return rmses, rmse_stds, biases, bias_stds, stds, std_stds   
 
 
 # LOWPASS
 def lowpass_roi(folder, nums, image_sets, lowpass_filtered, rois):
     print("low pass")
-    FWHM = [1, 3]
+    FWHM = [1.1, 1.5]
     for u in range(len(lowpass_filtered)):
 
         true_images, measurements, reconstructions = image_sets

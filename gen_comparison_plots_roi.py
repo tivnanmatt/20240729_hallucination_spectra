@@ -8,8 +8,8 @@ from perturbation_fn import *
 from map_fn_roi import *
 from map_fn_new import *
 
-folder_a = "samples_a/"
-folder_a_d = "samples_a_d/"
+folder_a = "samples_a_200/"
+folder_a_d = "samples_a_d_200/"
 
 image_sets_a = torch.load(folder_a + "image_sets_a.pt")
 image_sets_a_d = torch.load(folder_a_d + "image_sets_a_d.pt")
