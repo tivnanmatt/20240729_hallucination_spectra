@@ -29,8 +29,8 @@ def filter_recon(image_sets):
                       recon_filtered_9, recon_filtered_10, recon_filtered_11, recon_filtered_12, recon_filtered_13]
     return recon_filtered_all
 
-def three_filters(image_sets):
-    true_images, measurements, reconstructions = image_sets
+def three_filters(reconstructions):
+    # true_images, measurements, reconstructions = image_sets
     reconstructions = reconstructions.detach().cpu()
     # FWHM=1.1mm
     LPF_1 = gaussian_filter(reconstructions, sigma=0.46709129511)
@@ -47,34 +47,48 @@ def three_filters(image_sets):
 
 
 def filter_maps(folder, nums, image_sets):
-    band_filtered, lowpass_filtered = three_filters(image_sets)
-    band_rmses, band_biases, band_stds = bandpass(folder, nums, image_sets, band_filtered)
-    low_std = lowpass(folder, nums, image_sets, lowpass_filtered)
+    true_images, measurements, reconstructions = image_sets
+    band_filtered, lowpass_filtered = three_filters(reconstructions)
+    band_filtered_true, lowpass_filtered_true = three_filters(true_images)
+    band_rmses, band_biases, band_stds = bandpass(folder, nums, image_sets, band_filtered, band_filtered_true)
+    # low_std = lowpass(folder, nums, image_sets, lowpass_filtered)
 
-    return band_rmses, band_biases, band_stds, low_std
+    # return band_rmses, band_biases, band_stds, low_std
+    return band_rmses, band_biases, band_stds
 
 # def bandpass(folder, nums, image_sets, recon_filtered_all):
 
 # BANDPASS
-def bandpass(folder, nums, image_sets, band_filtered):
+def bandpass(folder, nums, image_sets, band_filtered, band_filtered_true):
     print("band pass")
-    bands = ["low", "middle", "high"]
-    band_rmses = []
-    band_biases = []
-    band_stds = []
+    # bands = ["low", "middle", "high"]
+    # band_rmses = []
+    # band_biases = []
+    # band_stds = []
+    rmses = []
+    biases = []
+    stds = []
     for u in range(len(band_filtered)):
         
         true_images, measurements, reconstructions = image_sets
 
         band_filtered_img = band_filtered[u]
         recon_filtered = torch.from_numpy(band_filtered_img)
-        image_sets = true_images, measurements, recon_filtered
+        band_filtered_trueu = band_filtered_true[u]
+        true_filtered = torch.from_numpy(band_filtered_trueu)
+        image_sets = true_filtered, measurements, recon_filtered
 
         # mean of the filtered reconstruction
         mean = calculate_mean(nums, image_sets)
         rmse = calculate_rmse(nums, image_sets, freq=False)
         bias = calculate_bias(mean, nums, image_sets, freq=False)
         std = calculate_std(mean, nums, image_sets, freq=False)
+
+        rmses.append(rmse)
+        biases.append(bias)
+        stds.append(std)
+
+        """
         title = "STD maps (band filtered: " + bands[u] + ")"
         file = "std_" + bands[u] + ".png"
         # title = f"STD maps (band filtered: sigma={round(0.4*(u-1), 1)}-{round(0.4*u, 1)})"
@@ -99,7 +113,9 @@ def bandpass(folder, nums, image_sets, band_filtered):
         band_std = std_vector, std_avg, std_std
         band_stds.append(band_std)
         # need a list of band_std for the three bands, now only have one band; same for lowpass
-    return band_rmses, band_biases, band_stds
+        """
+    return rmses, biases, stds
+    # return band_rmses, band_biases, band_stds
 
 
 # LOWPASS
@@ -140,14 +156,21 @@ print(variance[0, 0, 0, :, :, :])
 """
 
 def filter_maps_roi(folder, nums, image_sets, rois):
-    band_filtered, lowpass_filtered = three_filters(image_sets)
-    rmses, rmse_stds, biases, bias_stds, stds, std_stds = bandpass_roi(folder, nums, image_sets, band_filtered, rois)
-    low_std = lowpass_roi(folder, nums, image_sets, lowpass_filtered, rois)
+    # band_filtered, lowpass_filtered = three_filters(image_sets)
+    # rmses, rmse_stds, biases, bias_stds, stds, std_stds = bandpass_roi(folder, nums, image_sets, band_filtered, rois)
+    # low_std = lowpass_roi(folder, nums, image_sets, lowpass_filtered, rois)
 
-    return rmses, rmse_stds, biases, bias_stds, stds, std_stds
+    # return rmses, rmse_stds, biases, bias_stds, stds, std_stds
+
+    true_images, measurements, reconstructions = image_sets
+    band_filtered, lowpass_filtered = three_filters(reconstructions)
+    band_filtered_true, lowpass_filtered_true = three_filters(true_images)
+    band_rmses, band_biases, band_stds = bandpass_roi(folder, nums, image_sets, band_filtered, band_filtered_true, rois)
+
+    return band_rmses, band_biases, band_stds
 
 # BANDPASS
-def bandpass_roi(folder, nums, image_sets, band_filtered, rois):
+def bandpass_roi(folder, nums, image_sets, band_filtered, band_filtered_true, rois):
     print("band pass")
     bands = ["low", "middle", "high"]
     band_rmses = []
@@ -166,13 +189,20 @@ def bandpass_roi(folder, nums, image_sets, band_filtered, rois):
 
         band_filtered_img = band_filtered[u]
         recon_filtered = torch.from_numpy(band_filtered_img)
-        image_sets = true_images, measurements, recon_filtered
+        band_filtered_trueu = band_filtered_true[u]
+        true_filtered = torch.from_numpy(band_filtered_trueu)
+        image_sets = true_filtered, measurements, recon_filtered
 
         # mean of the filtered reconstruction
         mean = calculate_roi_mean(nums, image_sets, rois)
         rmse = calculate_roi_rmse(nums, image_sets, rois, freq=False)
         bias = calculate_roi_bias(mean, nums, image_sets, rois, freq=False)
         std = calculate_roi_std(mean, nums, image_sets, rois, freq=False)
+        rmses.append(rmse)
+        biases.append(bias)
+        stds.append(std)
+
+        """
         title = "STD maps (band filtered: " + bands[u] + ")"
         file = "std_" + bands[u] + "_roi.png"
         # title = f"STD maps (band filtered: sigma={round(0.4*(u-1), 1)}-{round(0.4*u, 1)})"
@@ -208,9 +238,10 @@ def bandpass_roi(folder, nums, image_sets, band_filtered, rois):
 
         stds.append(std_avg)
         std_stds.append(std_std)
-
+    """
     # return band_rmses, band_biases, band_stds
-    return rmses, rmse_stds, biases, bias_stds, stds, std_stds   
+    # return rmses, rmse_stds, biases, bias_stds, stds, std_stds   
+    return rmses, biases, stds
 
 
 # LOWPASS

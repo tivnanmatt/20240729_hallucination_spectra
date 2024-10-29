@@ -9,21 +9,28 @@ from map_fn_roi import *
 from filter_fn import *
 from map_fn_new import *
 
-folder_a = "samples_a_200/"
-folder_a_d = "samples_a_d_200/"
+folder_a = "samples_a_32/"
+folder_a_d = "samples_a_d_32/"
 record_a = 'record_a_roi.txt'
 nums_a = 16, 1, 16, 512, 32
-image_sets_a = torch.load("samples_a_200/image_sets_a.pt")
-image_sets_a_d = torch.load("samples_a_d_200/image_sets_a_d.pt")
-rois = torch.load("samples_a_d_200/rois.pt")
+image_sets_a = torch.load("samples_a_32/image_sets_a.pt")
+image_sets_a_d = torch.load("samples_a_d_32/image_sets_a_d.pt")
+rois = torch.load("samples_a_d_32/rois.pt")
 
-# display_rois(folder_a, image_sets_a, rois)
+true, meas, recon = image_sets_a
+true_d, meas_d, recon_d = image_sets_a_d
+image_sets_a_1 = true[:, :, :, :, :, :], meas[:, :, :, :, :, :], recon[:, :, :16, :, :, :]
+image_sets_a_2 = true[:, :, :, :, :, :], meas[:, :, :, :, :, :], recon[:, :, 16:, :, :, :]
+image_sets_a_d_1 = true_d[:, :, :, :, :, :], meas_d[:, :, :, :, :, :], recon_d[:, :, :16, :, :, :]
+image_sets_a_d_2 = true_d[:, :, :, :, :, :], meas_d[:, :, :, :, :, :], recon_d[:, :, 16:, :, :, :]
 
-rmse, bias, std = error_maps_roi(folder_a, nums_a, image_sets_a, rois)
-all_errors, error_vectors = calculate_error(rmse, bias, std, frequency=False)
-record_errors(all_errors, record_a, frequency=False, perturbation=False)
-torch.save(error_vectors, folder_a + 'error_vectors_roi.pt')
-torch.save(all_errors, folder_a + 'all_errors_roi.pt')
+display_rois(folder_a, image_sets_a, rois)
+
+# rmse, bias, std = error_maps_roi(folder_a, nums_a, image_sets_a, rois)
+# all_errors, error_vectors = calculate_error(rmse, bias, std, frequency=False)
+# record_errors(all_errors, record_a, frequency=False, perturbation=False)
+# torch.save(error_vectors, folder_a + 'error_vectors_roi.pt')
+# torch.save(all_errors, folder_a + 'all_errors_roi.pt')
 
 # rmses, rmse_stds, biases, bias_stds, stds, std_stds = filter_maps_roi(folder_a, nums_a, image_sets_a, rois)
 # band_stats = band_rmses, band_biases, band_stds
@@ -51,11 +58,13 @@ torch.save(all_errors, folder_a + 'all_errors_roi.pt')
 
 # band_rmses_d, band_biases_d, band_stds_d, low_std_d = filter_maps_roi(folder_a_d, nums_a, image_sets_a_d, rois)
 
-# rmses, rmse_stds, biases, bias_stds, stds, std_stds = filter_maps_roi(folder_a, nums_a, image_sets_a, rois)
-# rmses_d, rmse_stds_d, biases_d, bias_stds_d, stds_d, std_stds_d = filter_maps_roi(folder_a_d, nums_a, image_sets_a_d, rois)
-# bar_band('RMSE', folder_a + 'rmse_bands.png', rmses, rmses_d, rmse_stds, rmse_stds_d)
-# bar_band('Bias', folder_a + 'bias_bands.png', biases, biases_d, bias_stds, bias_stds_d)
-# bar_band('STD', folder_a + 'std_bands.png', stds, stds_d, std_stds, std_stds_d)
+# first set
+
+rmses, rmse_stds, biases, bias_stds, stds, std_stds = filter_maps_roi(folder_a, nums_a, image_sets_a_2, rois)
+rmses_d, rmse_stds_d, biases_d, bias_stds_d, stds_d, std_stds_d = filter_maps_roi(folder_a_d, nums_a, image_sets_a_d_2, rois)
+bar_band('RMSE set 2', folder_a + 'rmse_bands_2.png', rmses, rmses_d, rmse_stds, rmse_stds_d)
+bar_band('Bias set 2', folder_a + 'bias_bands_2.png', biases, biases_d, bias_stds, bias_stds_d)
+bar_band('STD set 2', folder_a + 'std_bands_2.png', stds, stds_d, std_stds, std_stds_d)
 
 # band_std_vector_d, band_std_avg_d, band_std_std_d = band_std
 # low_std_vector_d, low_std_avg_d, low_std_std_d = low_std
